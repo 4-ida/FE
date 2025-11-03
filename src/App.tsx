@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
+import GlobalStyles from "./styles/GlobalStyles";
 
 const Home = lazy(() => import("./pages/Home"));
 const Login = lazy(() => import("./pages/Login"));
@@ -19,6 +20,7 @@ const WhatDrink = lazy(() => import("./pages/WhatDrink"));
 function App() {
   return (
     <Router>
+      <GlobalStyles />
       {/* Suspense는 lazy 컴포넌트 로딩 중 표시 */}
       <Suspense fallback={<div>Loading...</div>}>
         <Routes>
