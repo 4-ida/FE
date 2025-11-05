@@ -1,6 +1,13 @@
 import styled from "styled-components";
-import { RiArrowDropDownLine } from "react-icons/ri";
+import Dropdown from "../pages/DropDown";
+import React, { useState } from "react";
 export default function Mypage() {
+  const caffeineOptions = ["약함", "보통", "강함"];
+  const drinkOptions = ["없음", "가끔", "자주"];
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [caffeine, setCaffeine] = useState("");
+  const [drink, setDrink] = useState("");
   return (
     <Screen>
       <Header>
@@ -13,24 +20,36 @@ export default function Mypage() {
       <Content>
         <NameBox>
           <Name>이름</Name>
-          <Box></Box>
+          <Box
+            type="text"
+            value={name}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setName(e.target.value)
+            }
+          ></Box>
         </NameBox>
         <NameBox>
           <Name>이메일</Name>
-          <Box></Box>
+          <Box
+            type="text"
+            value={email}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setEmail(e.target.value)
+            }
+          ></Box>
         </NameBox>
-        <NameBox>
-          <Name>카페인 민감도</Name>
-          <DropdownBox>
-            <DropdownIcon />
-          </DropdownBox>
-        </NameBox>
-        <NameBox>
-          <Name>음주 민감도</Name>
-          <DropdownBox>
-            <DropdownIcon />
-          </DropdownBox>
-        </NameBox>
+        <Dropdown
+          label="카페인 민감도"
+          selected={caffeine}
+          options={caffeineOptions}
+          onSelect={setCaffeine}
+        />
+        <Dropdown
+          label="음주 패턴"
+          selected={drink}
+          options={drinkOptions}
+          onSelect={setDrink}
+        />
       </Content>
     </Screen>
   );
@@ -68,11 +87,7 @@ const Logo = styled.div`
   font-weight: 600;
   font-size: 20px;
   line-height: 24px;
-  /* 상자 높이와 동일 */
-
   color: #333333;
-
-  /* 내부 오토레이아웃 */
   flex: none;
   order: 0;
   flex-grow: 0;
@@ -145,7 +160,6 @@ const NameBox = styled.div`
 `;
 const Name = styled.div`
   width: 363px;
-  height: 20px;
   font-family: "Pretendard";
   font-style: normal;
   font-weight: 500;
@@ -157,8 +171,8 @@ const Name = styled.div`
   align-self: stretch;
   flex-grow: 0;
 `;
-const Box = styled.div`
-  width: 363px;
+const Box = styled.input<{ type: string; value: string }>`
+  width: 353px;
   height: 40px;
   background: #ffffff;
   border: 1.5px solid #ebebeb;
@@ -167,24 +181,11 @@ const Box = styled.div`
   order: 1;
   align-self: stretch;
   flex-grow: 0;
-`;
-const DropdownBox = styled.div`
-  position: relative;
-  width: 363px;
-  height: 40px;
-  border: 1.5px solid #ebebeb;
-  border-radius: 5px;
-  flex: none;
-  order: 0;
-  align-self: stretch;
-  flex-grow: 0;
-`;
-const DropdownIcon = styled(RiArrowDropDownLine)`
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 24px;
-  height: 24px;
-  color: #333;
+  padding-left: 10px;
+  font-family: "Pretendard";
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 19px;
+  curosr: pointer;
 `;
