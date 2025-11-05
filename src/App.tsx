@@ -5,14 +5,14 @@ import styled from "styled-components";
 
 const Container = styled.div`
   display: flex;
-  justify-content : center;
+  justify-content: center;
   align-items: center;
   flex-direction: column;
-`
+`;
 
 const AppWrapper = styled.div`
   display: flex;
-  justify-content:center ;
+  justify-content: center;
   flex-direction: column;
   align-items: center;
   position: relative;
@@ -20,7 +20,7 @@ const AppWrapper = styled.div`
   overflow: hidden;
 `;
 
-const Home = lazy(() => import("./pages/Main")); 
+const Home = lazy(() => import("./pages/Main"));
 const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
 const DrugRegistration = lazy(() => import("./pages/DrugRegistration"));
@@ -33,35 +33,34 @@ const LeftTimer = lazy(() => import("./pages/LeftTimer"));
 const WhatDrink = lazy(() => import("./pages/WhatDrink"));
 const Nav = lazy(() => import("./components/nav"));
 const DrugChange = lazy(() => import("./pages/drugchange"));
-const Setting = lazy(() => import("./setting")); 
-
+const Setting = lazy(() => import("./setting"));
 
 function App() {
   return (
     <Container>
       <AppWrapper>
-    <Router>
-      <GlobalStyles />
-      <Suspense fallback={<div>Loading...</div>}>
-        <Routes>
-          <Route path="/" element={<Setting />} /> 
-          <Route path="/main" element={<Home />} /> 
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/drug/register" element={<DrugRegistration />} />
-          <Route path="/drug/information" element={<DrugInformation />} />
-          <Route path="/drug/search" element={<Search />} />
-          <Route path="/drug/bookmark" element={<Bookmark />} />
-          <Route path="/mypage" element={<Mypage />} />
-          <Route path="/timer/no" element={<NoTimer />} />
-          <Route path="/timer/left" element={<LeftTimer />} />
-          <Route path="/whatdrink" element={<WhatDrink />} />
-          <Route path="/nav" element={<Nav />} />
-          <Route path="/drug/change" element={<DrugChange />} />
-        </Routes>
-      </Suspense>
-    </Router>
-    </AppWrapper>
+        <Router>
+          <GlobalStyles />
+          <Suspense fallback={<div>Loading...</div>}>
+            <Routes>
+              <Route path="/" element={<Setting />} />
+              <Route path="/main" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/drug/register" element={<DrugRegistration />} />
+              <Route path="/drug/information" element={<DrugInformation />} />
+              <Route path="/drug/search" element={<Search />} />
+              <Route path="/drug/bookmark" element={<Bookmark />} />
+              <Route path="/mypage" element={<Mypage />} />
+              <Route path="/timer/no" element={<NoTimer />} />
+              <Route path="/timer/left" element={<LeftTimer />} />
+              <Route path="/whatdrink" element={<WhatDrink />} />
+              <Route path="/nav" element={<Nav />} />
+              <Route path="/drug/change" element={<DrugChange />} />
+            </Routes>
+          </Suspense>
+        </Router>
+      </AppWrapper>
     </Container>
   );
 }
