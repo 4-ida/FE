@@ -1,6 +1,24 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import GlobalStyles from "./styles/GlobalStyles";
+import styled from "styled-components";
+
+const Container = styled.div`
+  display: flex;
+  justify-content : center;
+  align-items: center;
+  flex-direction: column;
+`
+
+const AppWrapper = styled.div`
+  display: flex;
+  justify-content:center ;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  min-height: 100vh; /* 뷰포트 높이만큼 최소 높이 설정 */
+  overflow: hidden;
+`;
 
 const Home = lazy(() => import("./pages/Main")); 
 const Login = lazy(() => import("./pages/Login"));
@@ -13,12 +31,15 @@ const Mypage = lazy(() => import("./pages/Mypage"));
 const NoTimer = lazy(() => import("./pages/NoTimer"));
 const LeftTimer = lazy(() => import("./pages/LeftTimer"));
 const WhatDrink = lazy(() => import("./pages/WhatDrink"));
-const Nav = lazy(() => import("./components/Nav"));
+const Nav = lazy(() => import("./components/nav"));
+const DrugChange = lazy(() => import("./pages/drugchange"));
 const Setting = lazy(() => import("./setting")); 
 
 
 function App() {
   return (
+    <Container>
+      <AppWrapper>
     <Router>
       <GlobalStyles />
       <Suspense fallback={<div>Loading...</div>}>
@@ -36,9 +57,12 @@ function App() {
           <Route path="/timer/left" element={<LeftTimer />} />
           <Route path="/whatdrink" element={<WhatDrink />} />
           <Route path="/nav" element={<Nav />} />
+          <Route path="/drug/change" element={<DrugChange />} />
         </Routes>
       </Suspense>
     </Router>
+    </AppWrapper>
+    </Container>
   );
 }
 

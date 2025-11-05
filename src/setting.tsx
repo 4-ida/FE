@@ -40,7 +40,9 @@ const Setting = () => {
       <SettingBtn onClick={() => navigate("/mypage")}>마이 페이지</SettingBtn> 
       <SettingBtn onClick={() => navigate("/timer/no")}>금지 타이머</SettingBtn> 
       <SettingBtn onClick={() => navigate("/timer/left")}>잔존 타이머</SettingBtn>
-      <SettingBtn onClick={() => navigate("/WhatDrink")}>섭취 입력</SettingBtn>
+      <SettingBtn onClick={() => navigate("/whatdrink")}>섭취 입력</SettingBtn>
+      <SettingBtn onClick={() => navigate("/nav")}>네브바</SettingBtn>
+      <SettingBtn onClick={() => navigate("/drug/change")}>약 수정</SettingBtn>
     </PageContainer>
   );
 };

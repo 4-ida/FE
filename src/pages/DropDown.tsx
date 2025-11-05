@@ -39,7 +39,7 @@ export default function Dropdown({
     <Wrapper ref={ref}>
       {label && <Label>{label}</Label>}
       <SelectButton onClick={toggleDropdown} isOpen={show}>
-        {selected || "선택"}
+       
         <ArrowIcon isOpen={show} />
       </SelectButton>
 
@@ -98,6 +98,7 @@ const SelectButton = styled.button<{ isOpen: boolean }>`
 
   border: 1.5px solid #ebebeb;
   border-radius: 5px;
+  justify-content: flex-end;
 
   /* 내부 오토레이아웃 */
   flex: none;
@@ -114,7 +115,6 @@ const ArrowIcon = styled(AiOutlineDown)<{ isOpen: boolean }>`
   position: relative;
   width: 20px;
   height: 20px;
-  right: 5px;
 `;
 
 const Menu = styled.ul`
