@@ -31,6 +31,8 @@ const Mypage = lazy(() => import("./pages/Mypage"));
 const NoTimer = lazy(() => import("./pages/NoTimer"));
 const LeftTimer = lazy(() => import("./pages/LeftTimer"));
 const WhatDrink = lazy(() => import("./pages/WhatDrink"));
+const DrinkCaffaine = lazy(() => import("./pages/DrinkCaffaine"));
+const DrinkAlcohol = lazy(() => import("./pages/DrinkAlcohol"));
 const Nav = lazy(() => import("./components/nav"));
 const DrugChange = lazy(() => import("./pages/drugchange"));
 const Setting = lazy(() => import("./setting"));
@@ -49,12 +51,14 @@ function App() {
               <Route path="/signup" element={<Signup />} />
               <Route path="/drug/register" element={<DrugRegistration />} />
               <Route path="/drug/information" element={<DrugInformation />} />
-              <Route path="/drug/search" element={<Search />} />
+              <Route path="/search" element={<Search />} />
               <Route path="/drug/bookmark" element={<Bookmark />} />
               <Route path="/mypage" element={<Mypage />} />
               <Route path="/timer/no" element={<NoTimer />} />
               <Route path="/timer/left" element={<LeftTimer />} />
               <Route path="/whatdrink" element={<WhatDrink />} />
+              <Route path="/drink/caffaine" element={<DrinkCaffaine />} />
+              <Route path="/drink/alcohol" element={<DrinkAlcohol />} />
               <Route path="/nav" element={<Nav />} />
               <Route path="/drug/change" element={<DrugChange />} />
             </Routes>

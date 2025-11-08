@@ -39,7 +39,7 @@ export default function Dropdown({
     <Wrapper ref={ref}>
       {label && <Label>{label}</Label>}
       <SelectButton onClick={toggleDropdown} isOpen={show}>
-       
+        <span>{selected || ""}</span>
         <ArrowIcon isOpen={show} />
       </SelectButton>
 
@@ -48,7 +48,7 @@ export default function Dropdown({
           {options.map((opt) => (
             <MenuItem
               key={opt}
-              selected={opt === selected} // ✅ 선택된 값 비교하여 스타일 적용
+              selected={opt === selected}
               onClick={() => handleSelect(opt)}
             >
               {opt}
@@ -88,8 +88,6 @@ const Label = styled.div`
   flex-grow: 0;
 `;
 const SelectButton = styled.button<{ isOpen: boolean }>`
-  /* Frame 6 */
-
   width: 363px;
   height: 42px;
   display: flex;
@@ -98,7 +96,15 @@ const SelectButton = styled.button<{ isOpen: boolean }>`
 
   border: 1.5px solid #ebebeb;
   border-radius: 5px;
-  justify-content: flex-end;
+  justify-content: space-between;
+
+  font-family: "Pretendard";
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 19px;
+
+  color: #333333;
 
   /* 내부 오토레이아웃 */
   flex: none;
@@ -118,8 +124,8 @@ const ArrowIcon = styled(AiOutlineDown)<{ isOpen: boolean }>`
 `;
 
 const Menu = styled.ul`
-  position: absolute; /* ✅ Wrapper 안에서 절대 위치 */
-  top: calc(100% + 4px); /* ✅ 버튼 바로 아래 붙음 */
+  position: absolute;
+  top: calc(100% + 4px);
   left: 0;
   width: 100%;
 
@@ -130,7 +136,7 @@ const Menu = styled.ul`
   margin: 0;
 
   list-style: none;
-  z-index: 1000; /* ✅ 아래 요소 위로 올라와야 함 */
+  z-index: 1000;
 `;
 const MenuItem = styled.li<{ selected: boolean }>`
   display: flex;
