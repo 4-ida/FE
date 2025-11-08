@@ -1,12 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
-import { AiOutlineDown } from "react-icons/ai";
+import DropdownIcon from "../assets/dropdown.svg?react";
 
 interface DropdownProps {
   label?: string;
   options: string[];
   selected: string;
   onSelect: (value: string) => void;
+  disableDefaultUI?: boolean;
+  onClick?: () => void;
 }
 
 export default function Dropdown({
@@ -14,11 +16,19 @@ export default function Dropdown({
   options,
   selected,
   onSelect,
+  disableDefaultUI,
+  onClick,
 }: DropdownProps) {
   const [show, setShow] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  const toggleDropdown = () => setShow((prev) => !prev);
+  const toggleDropdown = () => {
+    if (disableDefaultUI) {
+      onClick && onClick(); // ✅ 모달 실행
+      return;
+    }
+    setShow((prev) => !prev);
+  };
 
   const handleSelect = (value: string) => {
     onSelect(value);
@@ -39,13 +49,11 @@ export default function Dropdown({
     <Wrapper ref={ref}>
       {label && <Label>{label}</Label>}
       <SelectButton onClick={toggleDropdown} isOpen={show}>
-        <span>{selected || ""}</span>
         <ArrowIcon isOpen={show} />
       </SelectButton>
-
-      {show && (
+      {!disableDefaultUI && show && (
         <Menu>
-          {options.map((opt) => (
+          {options.map((opt: string) => (
             <MenuItem
               key={opt}
               selected={opt === selected}
@@ -67,37 +75,23 @@ const Wrapper = styled.div`
 `;
 
 const Label = styled.div`
-  /* 카페인 민감도 */
-
   width: 363px;
-  height: 21px;
   margin-bottom: 8px;
-
   font-family: "Pretendard";
-  font-style: normal;
   font-weight: 500;
   font-size: 18px;
-  line-height: 21px;
-
   color: #333333;
-
-  /* 내부 오토레이아웃 */
-  flex: none;
-  order: 0;
-  align-self: stretch;
-  flex-grow: 0;
 `;
+
 const SelectButton = styled.button<{ isOpen: boolean }>`
   width: 363px;
-  height: 42px;
+  height: 40px;
+  box-sizing: border-box;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
-
   border: 1.5px solid #ebebeb;
   border-radius: 5px;
-  justify-content: space-between;
-
   font-family: "Pretendard";
   font-style: normal;
   font-weight: 400;
@@ -111,16 +105,14 @@ const SelectButton = styled.button<{ isOpen: boolean }>`
   order: 0;
   align-self: stretch;
   flex-grow: 0;
+  background: #ffffff;
+  cursor: pointer;
 `;
 
-const ArrowIcon = styled(AiOutlineDown)<{ isOpen: boolean }>`
+const ArrowIcon = styled(DropdownIcon)<{ isOpen: boolean }>`
   transition: transform 0.2s ease;
   transform: ${({ isOpen }) => (isOpen ? "rotate(180deg)" : "none")};
-  /* react-icons/RiArrowDropDownLine */
-
-  position: relative;
-  width: 20px;
-  height: 20px;
+  margin-right: -10px;
 `;
 
 const Menu = styled.ul`
@@ -128,33 +120,25 @@ const Menu = styled.ul`
   top: calc(100% + 4px);
   left: 0;
   width: 100%;
-
   background: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 0;
+  border: 1.5px solid #ebebeb;
+  border-radius: 5px;
+  padding: 5px;
   margin: 0;
-
+  box-sizing: border-box;
   list-style: none;
   z-index: 1000;
 `;
+
 const MenuItem = styled.li<{ selected: boolean }>`
-  display: flex;
-  width: 343px;
   height: 40px;
+  padding: 0px 5px;
+  display: flex;
   align-items: center;
-  padding: 0px 10px;
-
-  background: #ffffff;
-
-  /* 내부 오토레이아웃 */
-  flex: none;
-  order: 0;
-  flex-grow: 0;
-  cursor: pointer;
   background-color: ${({ selected }) => (selected ? "#E8FFCC" : "transparent")};
-  border-radius: ${({ selected }) => (selected ? "5px" : "0px")};
+  border-radius: ${({ selected }) => (selected ? "5px" : "0")};
   transition: background-color 0.2s ease;
+  cursor: pointer;
 
   &:hover {
     background-color: #e8ffcc;

@@ -244,7 +244,7 @@ const Box = styled.input<{ type: string; value: string }>`
 `;
 const LoginButton = styled.div`
   width: 363px;
-  height: 50px;
+  height: 45px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -263,7 +263,7 @@ const LoginButton = styled.div`
   font-family: "Pretendard";
   font-style: normal;
   font-weight: 500;
-  font-size: 20px;
+  font-size: 18px;
   line-height: 24px;
   /* 상자 높이와 동일 */
 

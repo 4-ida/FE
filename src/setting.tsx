@@ -49,6 +49,10 @@ const Setting = () => {
       <SettingBtn onClick={() => navigate("/whatdrink")}>섭취 입력</SettingBtn>
       <SettingBtn onClick={() => navigate("/nav")}>네브바</SettingBtn>
       <SettingBtn onClick={() => navigate("/drug/change")}>약 수정</SettingBtn>
+      <SettingBtn onClick={() => navigate("/todo")}>오늘의 약</SettingBtn>
+      <SettingBtn onClick={() => navigate("/date/select")}>
+        날짜 선택
+      </SettingBtn>
     </PageContainer>
   );
 };
