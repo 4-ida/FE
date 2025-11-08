@@ -172,8 +172,9 @@ const Name = styled.div`
   flex-grow: 0;
 `;
 const Box = styled.input<{ type: string; value: string }>`
-  width: 353px;
+  width: 363px;
   height: 40px;
+  box-sizing: border-box;
   background: #ffffff;
   border: 1.5px solid #ebebeb;
   border-radius: 5px;
