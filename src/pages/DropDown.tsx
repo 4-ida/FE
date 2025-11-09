@@ -9,6 +9,8 @@ interface DropdownProps {
   onSelect: (value: string) => void;
   disableDefaultUI?: boolean;
   onClick?: () => void;
+  variant?: "default" | "custom";
+  className?: string;
 }
 
 export default function Dropdown({
@@ -16,8 +18,12 @@ export default function Dropdown({
   options,
   selected,
   onSelect,
+
   disableDefaultUI,
   onClick,
+
+  className,
+  variant = "default",
 }: DropdownProps) {
   const [show, setShow] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -46,9 +52,12 @@ export default function Dropdown({
   }, []);
 
   return (
-    <Wrapper ref={ref}>
+    <Wrapper ref={ref} className={className} $variant={variant}>
       {label && <Label>{label}</Label>}
-      <SelectButton onClick={toggleDropdown} isOpen={show}>
+
+      <SelectButton onClick={toggleDropdown} isOpen={show} $variant={variant}>
+        <span>{selected || ""}</span>
+
         <ArrowIcon isOpen={show} />
       </SelectButton>
       {!disableDefaultUI && show && (
@@ -68,10 +77,12 @@ export default function Dropdown({
   );
 }
 
-const Wrapper = styled.div`
+const Wrapper = styled.div<{ $variant: "default" | "custom" }>`
   position: relative;
-  width: 100%;
+  width: ${({ $variant }) => ($variant === "custom" ? "111px" : "363px")};
   gap: 20px;
+  background: ${({ $variant }) =>
+    $variant === "custom" ? "#ffffff" : "#e8ffcc"};
 `;
 
 const Label = styled.div`
@@ -82,13 +93,16 @@ const Label = styled.div`
   font-size: 18px;
   color: #333333;
 `;
-
-const SelectButton = styled.button<{ isOpen: boolean }>`
-  width: 363px;
-  height: 40px;
+const SelectButton = styled.button<{
+  isOpen: boolean;
+  $variant: "default" | "custom";
+}>`
+  width: ${({ $variant }) => ($variant === "custom" ? "111px" : "363px")};
+  height: 42px;
   box-sizing: border-box;
+  padding: 0 12px;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
   border: 1.5px solid #ebebeb;
   border-radius: 5px;
@@ -97,16 +111,17 @@ const SelectButton = styled.button<{ isOpen: boolean }>`
   font-weight: 400;
   font-size: 16px;
   line-height: 19px;
-
   color: #333333;
+
+  /* ✅ variant별 배경색 + 커서 */
+  background: ${({ $variant }) => ($variant === "custom" ? "#fff" : "#fefefe")};
+  cursor: pointer;
 
   /* 내부 오토레이아웃 */
   flex: none;
   order: 0;
   align-self: stretch;
   flex-grow: 0;
-  background: #ffffff;
-  cursor: pointer;
 `;
 
 const ArrowIcon = styled(DropdownIcon)<{ isOpen: boolean }>`
@@ -120,14 +135,31 @@ const Menu = styled.ul`
   top: calc(100% + 4px);
   left: 0;
   width: 100%;
+
   background: white;
   border: 1.5px solid #ebebeb;
   border-radius: 5px;
+
+  box-sizing: border-box;
+
   padding: 5px;
   margin: 0;
   box-sizing: border-box;
   list-style: none;
   z-index: 1000;
+  max-height: 240px; /* 한 화면에 보여줄 높이 제한 (약 6개 정도) */
+  overflow-y: auto;
+  &::-webkit-scrollbar {
+    width: 3px; /* 스크롤바 두께 */
+    height: 52px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(181, 228, 123, 0.5);
+    border-radius: 3px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent; /* 스크롤 배경 투명 */
+  }
 `;
 
 const MenuItem = styled.li<{ selected: boolean }>`
