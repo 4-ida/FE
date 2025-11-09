@@ -33,6 +33,24 @@ export default function DrinkCaffaine() {
   const handleGoToMyPage = () => {
     navigate("/mypage");
   };
+  const GotoWhatDrink = () => {
+    navigate("/whatdrink");
+  };
+  const first = {
+    drink: "",
+    caffaine: "",
+    percent: "",
+    ampm: "",
+    time: "",
+    minute: "",
+  };
+  const handleReset = () => {
+    setDrink(first.drink);
+    setTime(first.time);
+    setCaffaine(first.caffaine);
+    setPercent(first.percent);
+    setMinute(first.minute);
+  };
   return (
     <Screen>
       <Header>
@@ -99,6 +117,10 @@ export default function DrinkCaffaine() {
           </DropdownLine>
         </DrinkBox>
       </Container>
+      <ButtonLine>
+        <CaffainePlus onClick={handleReset}>초기화</CaffainePlus>
+        <AlcoholPlus onClick={GotoWhatDrink}>완료</AlcoholPlus>
+      </ButtonLine>
       <Nav />
     </Screen>
   );
@@ -327,7 +349,7 @@ const Time = styled.input`
 `;
 const UnitLabel = styled.span`
   position: absolute;
-  right: 10px;
+  left: 35px;
   top: 50%;
   transform: translateY(-50%);
   font-size: 16px;
@@ -342,4 +364,73 @@ const UnitLabel = styled.span`
   /* identical to box height */
 
   color: #333333;
+`;
+const ButtonLine = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding: 0px;
+  gap: 6px;
+
+  position: fixed;
+  bottom: 99px;
+  width: 363px;
+  height: 42px;
+  transform: translateX(4%);
+`;
+const CaffainePlus = styled.button`
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+
+  width: 170px;
+  height: 42px;
+
+  background: #ebebeb;
+  border-radius: 5px;
+
+  /* Inside auto layout */
+  flex: none;
+  order: 0;
+  flex-grow: 0;
+
+  font-family: "Pretendard";
+  font-style: normal;
+  font-weight: 500;
+  font-size: 20px;
+  line-height: 24px;
+  /* identical to box height */
+  text-align: center;
+
+  color: #000000;
+`;
+const AlcoholPlus = styled.button`
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+
+  width: 180px;
+  height: 42px;
+
+  background: #b6f500;
+  border-radius: 5px;
+
+  /* Inside auto layout */
+  flex: none;
+  order: 1;
+  flex-grow: 0;
+  font-family: "Pretendard";
+  font-style: normal;
+  font-weight: 500;
+  font-size: 20px;
+  line-height: 24px;
+  /* identical to box height */
+  text-align: center;
+
+  color: #000000;
 `;
