@@ -100,9 +100,9 @@ const SelectButton = styled.button<{
   width: ${({ $variant }) => ($variant === "custom" ? "111px" : "363px")};
   height: 42px;
   box-sizing: border-box;
-
+  padding: 0 12px;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
   border: 1.5px solid #ebebeb;
   border-radius: 5px;
@@ -147,6 +147,19 @@ const Menu = styled.ul`
   box-sizing: border-box;
   list-style: none;
   z-index: 1000;
+  max-height: 240px; /* 한 화면에 보여줄 높이 제한 (약 6개 정도) */
+  overflow-y: auto;
+  &::-webkit-scrollbar {
+    width: 3px; /* 스크롤바 두께 */
+    height: 52px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(181, 228, 123, 0.5);
+    border-radius: 3px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent; /* 스크롤 배경 투명 */
+  }
 `;
 
 const MenuItem = styled.li<{ selected: boolean }>`
