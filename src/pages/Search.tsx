@@ -33,8 +33,8 @@ export default function Search() {
     { id: 9, name: "베아제", image: "/bea.svg", bookmarked: false },
   ];
   const Navigate = useNavigate();
-  const gotoInformation = () => {
-    Navigate("/drug/information");
+  const gotoInformation = (id: number) => {
+    Navigate(`/drug/information/${id}`);
   };
   const toggleBookmark = (id: number) => {
     setDrugs((prev) =>
@@ -99,63 +99,73 @@ export default function Search() {
           )}
         </BookmarkIcon>
       </SearchContainer>
-      <ProductList>
-        {displayedDrugs.map((drug) => (
-          <ProductBox key={drug.id} onClick={gotoInformation}>
-            <Group>
-              <img
-                src={drug.image}
-                alt={drug.name}
-                style={{
-                  width: "100px",
-                  height: "100px",
-                  borderRadius: "10px",
-                }}
-              />
-              <TextLine>
-                <Name>{drug.name}</Name>
-                <BookmarkIcon
-                  onClick={(e) => {
-                    e.stopPropagation(); // 부모 클릭(페이지 이동) 방지
-                    toggleBookmark(drug.id);
+
+      {find.trim() !== "" && (
+        <ProductList>
+          {displayedDrugs.length > 0 ? (
+            displayedDrugs.map((drug) => (
+              <ProductBox
+                key={drug.id}
+                onClick={() => gotoInformation(drug.id)}
+              >
+                <Group>
+                  <img
+                    src={drug.image}
+                    alt={drug.name}
+                    style={{
+                      width: "100px",
+                      height: "100px",
+                      borderRadius: "10px",
+                    }}
+                  />
+                  <TextLine>
+                    <Name>{drug.name}</Name>
+                    <BookmarkIcon
+                      onClick={(e) => {
+                        e.stopPropagation(); // 부모 클릭(페이지 이동) 방지
+                        toggleBookmark(drug.id);
+                      }}
+                    >
+                      {drug.bookmarked ? (
+                        <AiFillStar size={28} />
+                      ) : (
+                        <AiOutlineStar size={28} />
+                      )}
+                    </BookmarkIcon>
+                  </TextLine>
+                </Group>
+              </ProductBox>
+            ))
+          ) : (
+            <No>검색 결과가 없습니다</No>
+          )}
+        </ProductList>
+      )}
+      {find.trim() !== "" && displayedDrugs.length > 1 && (
+        <PageNumberBox>
+          <NumberLine>
+            <ArrowButton src={arrow1_} alt="이전" onClick={handlePrev} />
+            <OnlyNumber>
+              {[...Array(totalPages)].map((_, i) => (
+                <Number
+                  key={i}
+                  onClick={() => handlePageClick(i + 1)}
+                  style={{
+                    fontWeight: currentPage === i + 1 ? "bold" : "normal",
+                    background:
+                      currentPage === i + 1
+                        ? "rgba(182, 245, 0, 0.35)"
+                        : "rgba(182, 245, 0, 0.15)",
                   }}
                 >
-                  {" "}
-                  {drug.bookmarked ? (
-                    <AiFillStar size={28} />
-                  ) : (
-                    <AiOutlineStar size={28} />
-                  )}
-                </BookmarkIcon>
-              </TextLine>
-            </Group>
-          </ProductBox>
-        ))}
-      </ProductList>
-
-      <PageNumberBox>
-        <NumberLine>
-          <ArrowButton src={arrow1_} alt="이전" onClick={handlePrev} />
-          <OnlyNumber>
-            {[...Array(totalPages)].map((_, i) => (
-              <Number
-                key={i}
-                onClick={() => handlePageClick(i + 1)}
-                style={{
-                  fontWeight: currentPage === i + 1 ? "bold" : "normal",
-                  background:
-                    currentPage === i + 1
-                      ? "rgba(182, 245, 0, 0.35)"
-                      : "rgba(182, 245, 0, 0.15)",
-                }}
-              >
-                {i + 1}
-              </Number>
-            ))}
-          </OnlyNumber>
-          <ArrowButton src={arrow2} alt="다음" onClick={handleNext} />
-        </NumberLine>
-      </PageNumberBox>
+                  {i + 1}
+                </Number>
+              ))}
+            </OnlyNumber>
+            <ArrowButton src={arrow2} alt="다음" onClick={handleNext} />
+          </NumberLine>
+        </PageNumberBox>
+      )}
 
       <Nav></Nav>
     </Screen>
@@ -349,4 +359,22 @@ const ArrowButton = styled.img`
   background: rgba(182, 245, 0, 0.15);
   border-radius: 5px;
   cursor: pointer;
+`;
+const No = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+
+  font-family: "Pretendard";
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 19px;
+  color: #333333;
 `;
