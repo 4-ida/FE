@@ -11,6 +11,7 @@ interface DropdownProps {
   onClick?: () => void;
   variant?: "default" | "custom";
   className?: string;
+  placeholder?: string;
 }
 
 export default function Dropdown({
@@ -18,15 +19,16 @@ export default function Dropdown({
   options,
   selected,
   onSelect,
-
   disableDefaultUI,
   onClick,
-
   className,
   variant = "default",
+  placeholder = "선택해 주세요",
 }: DropdownProps) {
   const [show, setShow] = useState(false);
+  const [openUp, setOpenUp] = useState(false); // ✅ 추가
   const ref = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null); // ✅ 버튼 위치 확인용
 
   const toggleDropdown = () => {
     if (disableDefaultUI) {
@@ -36,11 +38,23 @@ export default function Dropdown({
     setShow((prev) => !prev);
   };
 
+  // ✅ 메뉴 방향 결정 로직
+  useEffect(() => {
+    if (show && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      // 아래 공간이 200px보다 작고 위쪽이 더 넓으면 위로 열기
+      setOpenUp(spaceBelow < 200 && spaceAbove > spaceBelow);
+    }
+  }, [show]);
+
   const handleSelect = (value: string) => {
     onSelect(value);
     setShow(false);
   };
 
+  // ✅ 외부 클릭 시 닫기
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
@@ -55,13 +69,20 @@ export default function Dropdown({
     <Wrapper ref={ref} className={className} $variant={variant}>
       {label && <Label>{label}</Label>}
 
-      <SelectButton onClick={toggleDropdown} isOpen={show} $variant={variant}>
-        <span>{selected || ""}</span>
-
+      <SelectButton
+        ref={buttonRef}
+        onClick={toggleDropdown}
+        isOpen={show}
+        $variant={variant}
+      >
+        <span style={{ color: selected ? "#333" : "#999" }}>
+          {selected || placeholder}
+        </span>
         <ArrowIcon isOpen={show} />
       </SelectButton>
+
       {!disableDefaultUI && show && (
-        <Menu>
+        <Menu $openUp={openUp}>
           {options.map((opt: string) => (
             <MenuItem
               key={opt}
@@ -77,12 +98,14 @@ export default function Dropdown({
   );
 }
 
+// --- Styled Components ---
+
 const Wrapper = styled.div<{ $variant: "default" | "custom" }>`
   position: relative;
   width: ${({ $variant }) => ($variant === "custom" ? "111px" : "363px")};
   gap: 20px;
   background: ${({ $variant }) =>
-    $variant === "custom" ? "#ffffff" : "#e8ffcc"};
+    $variant === "custom" ? "#ffffff" : "#ffffff"};
 `;
 
 const Label = styled.div`
@@ -93,13 +116,13 @@ const Label = styled.div`
   font-size: 18px;
   color: #333333;
 `;
+
 const SelectButton = styled.button<{
   isOpen: boolean;
   $variant: "default" | "custom";
 }>`
   width: ${({ $variant }) => ($variant === "custom" ? "111px" : "363px")};
   height: 42px;
-  box-sizing: border-box;
   padding: 0 12px;
   display: flex;
   justify-content: space-between;
@@ -107,21 +130,16 @@ const SelectButton = styled.button<{
   border: 1.5px solid #ebebeb;
   border-radius: 5px;
   font-family: "Pretendard";
-  font-style: normal;
-  font-weight: 400;
   font-size: 16px;
-  line-height: 19px;
-  color: #333333;
-
-  /* ✅ variant별 배경색 + 커서 */
+  color: #333;
   background: ${({ $variant }) => ($variant === "custom" ? "#fff" : "#fefefe")};
   cursor: pointer;
 
-  /* 내부 오토레이아웃 */
-  flex: none;
-  order: 0;
-  align-self: stretch;
-  flex-grow: 0;
+  &:focus,
+  &:active,
+  &:hover {
+    border: 1.5px solid #b6f500;
+  }
 `;
 
 const ArrowIcon = styled(DropdownIcon)<{ isOpen: boolean }>`
@@ -130,47 +148,43 @@ const ArrowIcon = styled(DropdownIcon)<{ isOpen: boolean }>`
   margin-right: -10px;
 `;
 
-const Menu = styled.ul`
+const Menu = styled.ul<{ $openUp: boolean }>`
   position: absolute;
-  top: calc(100% + 4px);
+  ${({ $openUp }) =>
+    $openUp ? "bottom: calc(100% + 4px);" : "top: calc(100% + 4px);"}
   left: 0;
   width: 100%;
-
   background: white;
   border: 1.5px solid #ebebeb;
   border-radius: 5px;
-
-  box-sizing: border-box;
-
   padding: 5px;
   margin: 0;
-  box-sizing: border-box;
   list-style: none;
   z-index: 1000;
-  max-height: 240px; /* 한 화면에 보여줄 높이 제한 (약 6개 정도) */
+  max-height: 240px;
   overflow-y: auto;
+
   &::-webkit-scrollbar {
-    width: 3px; /* 스크롤바 두께 */
-    height: 52px;
+    width: 3px;
   }
   &::-webkit-scrollbar-thumb {
     background-color: rgba(181, 228, 123, 0.5);
     border-radius: 3px;
   }
   &::-webkit-scrollbar-track {
-    background: transparent; /* 스크롤 배경 투명 */
+    background: transparent;
   }
 `;
 
 const MenuItem = styled.li<{ selected: boolean }>`
   height: 40px;
-  padding: 0px 5px;
+  padding: 0 5px;
   display: flex;
   align-items: center;
   background-color: ${({ selected }) => (selected ? "#E8FFCC" : "transparent")};
   border-radius: ${({ selected }) => (selected ? "5px" : "0")};
-  transition: background-color 0.2s ease;
   cursor: pointer;
+  transition: background-color 0.2s ease;
 
   &:hover {
     background-color: #e8ffcc;
