@@ -52,7 +52,10 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/drug/register" element={<DrugRegistration />} />
-              <Route path="/drug/information" element={<DrugInformation />} />
+              <Route
+                path="/drug/information/:id"
+                element={<DrugInformation />}
+              />
               <Route path="/search" element={<Search />} />
               <Route path="/drug/bookmark" element={<Bookmark />} />
               <Route path="/mypage" element={<Mypage />} />
