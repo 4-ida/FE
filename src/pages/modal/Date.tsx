@@ -1,7 +1,7 @@
 import styled, { keyframes } from "styled-components";
-import Calendar from "../../components/Calendar";
-import { useState } from "react";
-import Reset from "../../assets/reset.svg?react";
+import Calendar from "../../components/Calendar"; // 이 경로는 프로젝트 구조에 맞게 유지됩니다.
+import { useState, useRef, useEffect } from "react";
+import Reset from "../../assets/reset.svg?react"; // 이 경로는 프로젝트 구조에 맞게 유지됩니다.
 
 const slideIn = keyframes`
   from {
@@ -24,8 +24,11 @@ const slideOut = keyframes`
 interface DateModalProps {
   isOpen: boolean;
   onClose: (startDate?: Date, endDate?: Date) => void;
+  initialStart?: Date | null;
+  initialEnd?: Date | null;
 }
 
+// ✅ Container: 어두운 배경 전체 영역
 const Container = styled.div`
   position: fixed;
   inset: 0;
@@ -43,6 +46,7 @@ const Container = styled.div`
   box-sizing: border-box;
 `;
 
+// ✅ ModalContent: 모달 내용 박스
 const ModalContent = styled.div<{ $closing: boolean }>`
   background-color: white;
   width: 393px;
@@ -89,45 +93,91 @@ const FinishButton = styled.button`
   font-weight: 500;
   margin-top: 0px;
   cursor: pointer;
+
+  &:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }
 `;
 
-export default function DateModal({ isOpen, onClose }: DateModalProps) {
+export default function DateModal({
+  isOpen,
+  onClose,
+  initialStart = null,
+  initialEnd = null,
+}: DateModalProps) {
   const [isClosing, setIsClosing] = useState(false);
-  const [range, setRange] = useState<[Date, Date] | null>(null);
+  const [range, setRange] = useState<[Date, Date] | null>(
+    initialStart && initialEnd ? [initialStart, initialEnd] : null
+  );
+
+  // ⭐️ 모달이 열릴 때 부모에서 전달한 초기값으로 동기화
+  useEffect(() => {
+    if (isOpen && initialStart && initialEnd) {
+      setRange([initialStart, initialEnd]);
+    }
+  }, [isOpen, initialStart, initialEnd]);
 
   if (!isOpen && !isClosing) return null;
 
   const handleClose = (sendData = false) => {
     setIsClosing(true);
+
     setTimeout(() => {
+      // 부모에게 모달 닫힘 신호 전달
       onClose(
-        sendData && range ? range[0] : undefined,
-        sendData && range ? range[1] : undefined
+        sendData ? range?.[0] : undefined,
+        sendData ? range?.[1] : undefined
       );
+
+      // 내부 상태 초기화
       setIsClosing(false);
       setRange(null);
     }, 300);
   };
 
+  // 기존 useEffect (외부 클릭 감지) 로직은 Container의 onClick으로 대체되어 제거했습니다.
+
   const handleFinish = () => {
     if (range) handleClose(true);
   };
 
+  const handleDateSelect = (
+    value: Date | null | [Date | null, Date | null]
+  ) => {
+    if (!value) return;
+
+    if (Array.isArray(value)) {
+      // 범위 선택일 경우
+      if (value[0] && value[1]) setRange([value[0], value[1]]);
+      return;
+    }
+
+    // 단일 날짜 선택
+    if (!range) {
+      setRange([value, value]);
+      return;
+    }
+
+    const [start, end] = range;
+    if (value < start) setRange([value, end]);
+    else if (value > end) setRange([start, value]);
+    else setRange([value, value]); // 범위 내 날짜 선택 시 단일 선택 재설정
+  };
+
   return (
-    <Container onClick={() => !isClosing && handleClose()}>
+    // ✅ 1. Container (어두운 배경) 클릭 시 모달 닫기
+    <Container onClick={() => handleClose()}>
+      {/* ✅ 2. ModalContent 내부 클릭 이벤트가 Container로 전파되는 것을 막아 
+           모달 내용 클릭 시 닫히지 않도록 방지
+      */}
       <ModalContent $closing={isClosing} onClick={(e) => e.stopPropagation()}>
         <ModalHeader>복용 기간 선택</ModalHeader>
 
         <Calendar
-          selectRange
+          selectRange={false}
           value={range ?? undefined}
-          onChange={(value) => {
-            if (Array.isArray(value) && value[0] && value[1]) {
-              setRange([value[0], value[1]]);
-            } else {
-              setRange(null);
-            }
-          }}
+          onChange={handleDateSelect}
           isForModal
         />
 

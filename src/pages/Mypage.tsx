@@ -188,5 +188,4 @@ const Box = styled.input<{ type: string; value: string }>`
   font-weight: 400;
   font-size: 16px;
   line-height: 19px;
-  curosr: pointer;
 `;

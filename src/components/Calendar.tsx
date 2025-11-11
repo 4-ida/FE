@@ -14,6 +14,8 @@ interface CalendarProps {
   value?: Value;
   isForModal?: boolean;
   selectRange?: boolean;
+  activeStartDate?: Date;
+  onActiveStartDateChange?: (date: Date) => void;
 }
 
 const CalendarStyles = createGlobalStyle`
@@ -53,12 +55,14 @@ const CalendarStyles = createGlobalStyle`
     height: 60px !important;
     padding: 6px 0 !important;
     display: flex !important;
-    justify-content: center !important;
-    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
     background: none !important;
     border: none !important;
     font-size: 15px !important;
     font-weight: 400 !important;
+    box-sizing: border-box;
+    flex-direction: column;
   }
 
   .react-calendar__month-view__days__day--neighboringMonth {
@@ -66,8 +70,8 @@ const CalendarStyles = createGlobalStyle`
   }
 
   .react-calendar__tile--now {
-    background: #ebebeb !important;
-    border-radius: 5px;
+    background-color: #ebebeb !important;
+    border-radius: 5px !important;
   }
 
   .react-calendar__tile--active {
@@ -85,6 +89,7 @@ const CalendarStyles = createGlobalStyle`
   .react-calendar.modal-style .react-calendar__tile {
     height: 51px !important;
     align-items: center !important;
+    justify-content: center !important;
   }
 
   .react-calendar.modal-style .react-calendar__tile--active {
@@ -152,17 +157,155 @@ const getTileClass = ({ date, view }: { date: Date; view: string }) => {
   return "";
 };
 
+const dayMapping: { [key: number]: string } = {
+  0: "일",
+  1: "월",
+  2: "화",
+  3: "수",
+  4: "목",
+  5: "금",
+  6: "토",
+};
+
+// function renderDot(date: Date, isForModal?: boolean) {
+//   if (isForModal) return null; // 모달이면 점 표시 안함
+
+//   // ✅ 단일 기간/요일 대신 통합 스케줄 배열을 불러옵니다.
+//   const savedSchedulesString = localStorage.getItem("drugSchedules");
+//   if (!savedSchedulesString) return null;
+
+//   let schedules;
+//   try {
+//     schedules = JSON.parse(savedSchedulesString);
+//   } catch (e) {
+//     console.error("Failed to parse drugSchedules:", e);
+//     return null;
+//   }
+
+//   // 현재 날짜의 요일을 한글로 가져옵니다. (0: 일, 1: 월, ..., 6: 토)
+//   const currentDayInKorean = dayMapping[date.getDay()];
+
+//   // ✅ 모든 스케줄을 순회하며 하나라도 조건을 만족하는지 확인합니다.
+//   const shouldShowDot = schedules.some(
+//     (schedule: { days: string; start: string; end: string }) => {
+//       // 1. 기간 조건 확인
+//       const startDate = new Date(schedule.start);
+//       const endDate = new Date(schedule.end);
+//       const isInPeriod = date >= startDate && date <= endDate;
+
+//       if (!isInPeriod) return false;
+
+//       // 2. 요일 조건 확인
+//       const scheduledDays = schedule.days.split(",").map((day) => day.trim());
+//       const isScheduledDay = scheduledDays.includes(currentDayInKorean);
+
+//       return isScheduledDay;
+//     }
+//   );
+
+//   // ✅ 하나라도 조건을 만족하면 점 표시
+//   if (shouldShowDot) {
+//     return (
+//       <div
+//         style={{
+//           width: "6px",
+//           height: "6px",
+//           borderRadius: "50%",
+//           backgroundColor: "#b6f500",
+//           marginTop: "20px",
+//         }}
+//       ></div>
+//     );
+//   }
+
+//   return null;
+// }
+
+function renderDot(date: Date, isForModal?: boolean) {
+  if (isForModal) return null; // 모달이면 점 표시 안함
+
+  // ✅ 단일 기간/요일 대신 통합 스케줄 배열을 불러옵니다.
+  const savedSchedulesString = localStorage.getItem("drugSchedules");
+  if (!savedSchedulesString) return null;
+
+  let schedules;
+  try {
+    schedules = JSON.parse(savedSchedulesString);
+  } catch (e) {
+    console.error("Failed to parse drugSchedules:", e);
+    return null;
+  }
+
+  // 현재 날짜의 요일을 한글로 가져옵니다. (0: 일, 1: 월, ..., 6: 토)
+  const currentDayInKorean = dayMapping[date.getDay()];
+
+  // ✅ 모든 스케줄을 순회하며 하나라도 조건을 만족하는지 확인합니다.
+  const shouldShowDot = schedules.some(
+    (schedule: { days: string; start: string; end: string }) => {
+      // 1. 기간 조건 확인
+      const startDate = new Date(schedule.start);
+      const endDate = new Date(schedule.end);
+
+      // 날짜만 비교하기 위해 시간 정보 제거 (자정 기준)
+      const dateOnly = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate()
+      );
+      const startOnly = new Date(
+        startDate.getFullYear(),
+        startDate.getMonth(),
+        startDate.getDate()
+      );
+      const endOnly = new Date(
+        endDate.getFullYear(),
+        endDate.getMonth(),
+        endDate.getDate()
+      );
+
+      const isInPeriod = dateOnly >= startOnly && dateOnly <= endOnly;
+
+      if (!isInPeriod) return false;
+
+      // 2. 요일 조건 확인
+      const scheduledDays = schedule.days.split(",").map((day) => day.trim());
+      const isScheduledDay = scheduledDays.includes(currentDayInKorean);
+
+      return isScheduledDay;
+    }
+  );
+
+  // ✅ 하나라도 조건을 만족하면 점 표시
+  if (shouldShowDot) {
+    return (
+      <div
+        style={{
+          width: "6px",
+          height: "6px",
+          borderRadius: "50%",
+          backgroundColor: "#b6f500",
+          marginTop: "20px",
+        }}
+      ></div>
+    );
+  }
+
+  return null;
+}
+
 export default function CalendarView({
   onChange,
   value,
   selectRange = true,
   isForModal,
+  activeStartDate,
+  onActiveStartDateChange,
 }: CalendarProps) {
   const [internalValue, setInternalValue] = useState<Value>(value ?? null);
 
-  const [activeStartDate, setActiveStartDate] = useState(
-    new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-  );
+  // const [activeStartDate, setActiveStartDate] = useState(
+  //   new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+  // );
 
   const formatMonth = (d: Date) =>
     `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}`;
@@ -172,34 +315,49 @@ export default function CalendarView({
     onChange?.(nextValue);
   };
 
+  const handleActiveStartDateChange = ({
+    activeStartDate,
+  }: {
+    activeStartDate: Date | null;
+    view: string;
+  }) => {
+    if (activeStartDate && onActiveStartDateChange) {
+      onActiveStartDateChange(activeStartDate);
+    }
+  };
+
   return (
     <CalendarWrapper>
       <CalendarStyles />
       <MonthNavigation>
         <NavArrow
-          onClick={() =>
-            setActiveStartDate(
-              new Date(
-                activeStartDate.getFullYear(),
-                activeStartDate.getMonth() - 1,
-                1
-              )
-            )
-          }
+          onClick={() => {
+            if (activeStartDate && onActiveStartDateChange) {
+              onActiveStartDateChange(
+                new Date(
+                  activeStartDate.getFullYear(),
+                  activeStartDate.getMonth() - 1,
+                  1
+                )
+              );
+            }
+          }}
         >
           <Left />
         </NavArrow>
-        {formatMonth(activeStartDate)}
+        {activeStartDate && formatMonth(activeStartDate)}
         <NavArrow
-          onClick={() =>
-            setActiveStartDate(
-              new Date(
-                activeStartDate.getFullYear(),
-                activeStartDate.getMonth() + 1,
-                1
-              )
-            )
-          }
+          onClick={() => {
+            if (activeStartDate && onActiveStartDateChange) {
+              onActiveStartDateChange(
+                new Date(
+                  activeStartDate.getFullYear(),
+                  activeStartDate.getMonth() + 1,
+                  1
+                )
+              );
+            }
+          }}
         >
           <Right />
         </NavArrow>
@@ -212,13 +370,12 @@ export default function CalendarView({
         locale="ko-KR"
         calendarType="gregory"
         tileClassName={getTileClass}
+        tileContent={({ date }) => renderDot(date, isForModal)}
         formatDay={(_, date) => date.getDate().toString()}
         showNeighboringMonth={true}
         view="month"
         activeStartDate={activeStartDate}
-        onActiveStartDateChange={({ activeStartDate }) =>
-          activeStartDate && setActiveStartDate(activeStartDate)
-        }
+        onActiveStartDateChange={handleActiveStartDateChange}
         prevLabel={null}
         nextLabel={null}
         prev2Label={null}

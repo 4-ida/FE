@@ -1,9 +1,11 @@
 import styled from "styled-components";
 import bb from "../assets/backbutton.svg";
 import { useNavigate } from "react-router-dom";
-import Dropdown from "./DropDown";
+import Dropdown from "./DropDown"; // Dropdown 컴포넌트 (제공된 파일)
 import { useEffect, useState } from "react";
-import DateModal from "../pages/modal/Date";
+import DateModal from "../pages/modal/Date"; // DateModal 컴포넌트
+import EatModal from "../pages/modal/EatDate"; // EatModal 컴포넌트
+import DropdownIcon from "../assets/dropdown.svg?react"; // DropdownIcon SVG 컴포넌트
 
 const Container = styled.div`
   display: flex;
@@ -108,6 +110,54 @@ const SuggestionItem = styled.li`
   }
 `;
 
+// ⭐️ 프로필 없는 커스텀 드롭다운 UI 스타일 시작
+const CustomDropdownUI = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-bottom: 20px;
+  position: relative;
+`;
+
+const DropdownLabel = styled.div`
+  font-family: "Pretendard";
+  font-weight: 500;
+  font-size: 18px;
+  margin-bottom: 8px;
+`;
+
+const CustomSelectButton = styled.button`
+  width: 363px;
+  height: 40px;
+  border: 1.5px solid #ebebeb;
+  border-radius: 5px;
+  background-color: #fff;
+  padding: 0 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  box-sizing: border-box;
+  font-family: "Pretendard", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: #333;
+
+  &:focus {
+    outline: none;
+    border: 1.5px solid #b6f500;
+  }
+`;
+
+const RightArrowIcon = styled(DropdownIcon)`
+  width: 12px;
+  height: 12px;
+  transform: rotate(-90deg); /* 오른쪽을 바라보도록 회전 */
+  flex-shrink: 0;
+  margin-right: -5px;
+`;
+// ⭐️ 커스텀 드롭다운 UI 스타일 끝
+
 const DropdownWrapper = styled.div`
   display: flex;
   margin-bottom: 20px;
@@ -115,9 +165,9 @@ const DropdownWrapper = styled.div`
 
 const ToggleWrapper = styled.div`
   display: flex;
-  justify-content: space-between; /* 텍스트와 스위치를 양쪽 끝으로 */
-  align-items: center; /* 세로 중앙 정렬 */
-  width: 100%; /* Content 내부에서 가득 채우도록 */
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
   margin-bottom: 40px;
 `;
 
@@ -135,7 +185,7 @@ const ToggleInput = styled.input`
   height: 0;
 
   &:checked + span {
-    background-color: #b6f500; /* 활성화 시 배경색 */
+    background-color: #b6f500;
   }
 
   &:checked + span:before {
@@ -160,13 +210,13 @@ const ToggleSlider = styled.span`
   &:before {
     position: absolute;
     content: "";
-    height: 19.2px; /* 동그라미 높이 */
-    width: 19.2px; /* 동그라미 너비 */
+    height: 19.2px;
+    width: 19.2px;
     left: 3px;
     bottom: 2.46px;
-    background-color: #b6f500; /* 동그라미 색상 */
+    background-color: #b6f500;
     transition: 0.4s;
-    border-radius: 50%; /* 완전한 동그라미 */
+    border-radius: 50%;
   }
 `;
 
@@ -198,29 +248,46 @@ export default function DrugRegistration() {
     navigate("/mypage");
   };
 
+  // 이미지와 같은 초기값 설정
   const [schedule, setSchedule] = useState<string>("");
   const [period, setPeriod] = useState<string>("");
   const [modalType, setModalType] = useState<"schedule" | "period" | null>(
     null
   );
+  const [selectedStartDate, setSelectedStartDate] = useState<Date | null>(null);
+  const [selectedEndDate, setSelectedEndDate] = useState<Date | null>(null);
 
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
+  const [selectedDay, setSelectedDay] = useState("화");
+  const [selectedAmPm, setSelectedAmPm] = useState("오후");
+  const [selectedHour, setSelectedHour] = useState("6시");
+  const [selectedMinute, setSelectedMinute] = useState("00분");
+
+  const [currentScheduleDays, setCurrentScheduleDays] = useState<string>("");
+  const [currentScheduleTime, setCurrentScheduleTime] = useState<string>("");
+  const [currentScheduleStart, setCurrentScheduleStart] = useState<Date | null>(
+    null
+  );
+  const [currentScheduleEnd, setCurrentScheduleEnd] = useState<Date | null>(
+    null
+  );
+
   const mockDrugs = [
-    "타이레놀정500mg",
-    "타이레놀정160mg",
-    "게보린정",
-    "아스피린정100mg",
-    "판피린큐",
-    "이부프로펜정200mg",
-    "탁센정",
-    "부루펜시럽",
-    "써스펜",
-    "애드빌리퀴겔",
-    "신일해열정",
-    "나프록센정250mg",
-    "아모디핀정5mg",
+    { id: "0", pillName: "타이레놀정500mg" },
+    { id: "1", pillName: "타이레놀정160mg" },
+    { id: "2", pillName: "게보린정" },
+    { id: "3", pillName: "아스피린정100mg" },
+    { id: "4", pillName: "판피린큐" },
+    { id: "5", pillName: "이부프로펜정200mg" },
+    { id: "6", pillName: "탁센정" },
+    { id: "7", pillName: "부루펜시럽" },
+    { id: "8", pillName: "써스펜" },
+    { id: "9", pillName: "애드빌리퀴겔" },
+    { id: "10", pillName: "신일해열정" },
+    { id: "11", pillName: "나프록센정250mg" },
+    { id: "12", pillName: "아모디핀정5mg" },
   ];
 
   useEffect(() => {
@@ -228,11 +295,165 @@ export default function DrugRegistration() {
       setSuggestions([]);
       return;
     }
-    const filtered = mockDrugs.filter((drug) =>
-      drug.toLowerCase().includes(pillName.toLowerCase())
-    );
+
+    const filtered = mockDrugs
+      .filter((drug) =>
+        drug.pillName.toLowerCase().includes(pillName.toLowerCase())
+      )
+      .map((drug) => drug.pillName); // pillName만 추출
+
     setSuggestions(filtered);
   }, [pillName]);
+
+  // const handleScheduleClose = (selectedDay?: string, selectedTime?: string) => {
+  //   setModalType(null);
+  //   if (selectedDay && selectedTime) {
+  //     // 시간 문자열 분리
+  //    const [ampm, hour, minute] = selectedTime.split(" ");
+
+  //     setSelectedDay(selectedDay);
+  //     setSelectedAmPm(ampm);
+  //     setSelectedHour(hour);
+  //     setSelectedMinute(minute);
+
+  //     // 24시간 포맷으로 변환
+  //     let hourNum = parseInt(hour.replace("시", ""));
+  //     if (ampm === "오후" && hourNum !== 12) hourNum += 12;
+  //     if (ampm === "오전" && hourNum === 12) hourNum = 0;
+  //     const formattedHour = String(hourNum).padStart(2, "0");
+  //     const formattedSchedule = `${selectedDay} ${formattedHour}:${minute.replace(
+  //       "분",
+  //       ""
+  //     )}`;
+  //     setSchedule(`${selectedDay} ${selectedTime}`);
+  //     setCurrentScheduleDays(selectedDay);
+  //   }
+  // };
+
+  const handleScheduleClose = (selectedDay?: string, selectedTime?: string) => {
+    setModalType(null);
+    if (selectedDay && selectedTime) {
+      // selectedTime은 "오후 6시 00분" 형태
+      setSchedule(`${selectedDay} ${selectedTime}`);
+      setCurrentScheduleDays(selectedDay); // "월,화,수" 형태
+      setCurrentScheduleTime(selectedTime); // ⭐️ 시간 저장
+    }
+  };
+
+  // const handlePeriodClose = (start?: Date, end?: Date) => {
+  //   setModalType(null);
+  //   if (start && end) {
+  //     setSelectedStartDate(start);
+  //     setSelectedEndDate(end);
+
+  //     const formatDate = (date: Date) => {
+  //       const yy = String(date.getFullYear()).slice(2);
+  //       const mm = String(date.getMonth() + 1).padStart(2, "0");
+  //       const dd = String(date.getDate()).padStart(2, "0");
+  //       return `${yy}.${mm}.${dd}`;
+  //     };
+  //     const periodString = `${formatDate(start)} ~ ${formatDate(end)}`;
+  //     setPeriod(periodString);
+  //     setCurrentScheduleStart(start);
+  //     setCurrentScheduleEnd(end);
+  //   }
+  // };
+
+  const handlePeriodClose = (start?: Date, end?: Date) => {
+    setModalType(null);
+    if (start && end) {
+      setSelectedStartDate(start);
+      setSelectedEndDate(end);
+
+      const formatDate = (date: Date) => {
+        const yy = String(date.getFullYear()).slice(2);
+        const mm = String(date.getMonth() + 1).padStart(2, "0");
+        const dd = String(date.getDate()).padStart(2, "0");
+        return `${yy}.${mm}.${dd}`;
+      };
+      const periodString = `${formatDate(start)} ~ ${formatDate(end)}`;
+      setPeriod(periodString);
+      setCurrentScheduleStart(start);
+      setCurrentScheduleEnd(end);
+    }
+  };
+
+  // const handleSubmit = () => {
+  //   // ✅ 등록 버튼 클릭 시 통합 로직 실행
+  //   if (currentScheduleDays && currentScheduleStart && currentScheduleEnd) {
+  //     // 1. 기존 스케줄 불러오기
+  //     const existingSchedulesString = localStorage.getItem("drugSchedules");
+  //     let existingSchedules = [];
+  //     try {
+  //       if (existingSchedulesString) {
+  //         existingSchedules = JSON.parse(existingSchedulesString);
+  //       }
+  //     } catch (e) {
+  //       console.error("Failed to parse drugSchedules from localStorage:", e);
+  //     }
+
+  //     // 2. 새로운 스케줄 객체 생성 및 추가 (Date 객체를 JSON 직렬화를 위해 string으로 저장)
+  //     const newSchedule = {
+  //       days: currentScheduleDays, // 콤마로 구분된 요일 문자열 ("월, 화, 수")
+  //       start: currentScheduleStart.toISOString(),
+  //       end: currentScheduleEnd.toISOString(),
+  //     };
+
+  //     const updatedSchedules = [...existingSchedules, newSchedule];
+
+  //     // 3. 업데이트된 스케줄 저장
+  //     localStorage.setItem("drugSchedules", JSON.stringify(updatedSchedules));
+
+  //     // 편의상 기존 단일 약물 저장 방식도 유지 (달력 컴포넌트에서 drugSchedules를 사용하도록 변경할 예정)
+  //     // localStorage.setItem("drugPeriod", JSON.stringify({ start: currentScheduleStart, end: currentScheduleEnd }));
+  //   }
+
+  //   // ✅ Main 페이지로 이동
+  //   navigate("/main");
+  // };
+
+  const handleSubmit = () => {
+    if (
+      !pillName ||
+      !currentScheduleDays ||
+      !currentScheduleTime ||
+      !currentScheduleStart ||
+      !currentScheduleEnd
+    ) {
+      alert("약품명, 복용 일정, 복용 기간을 모두 입력해 주세요.");
+      return;
+    }
+
+    // 1. 기존 스케줄 불러오기
+    const existingSchedulesString = localStorage.getItem("drugSchedules");
+    let existingSchedules = [];
+    try {
+      if (existingSchedulesString) {
+        existingSchedules = JSON.parse(existingSchedulesString);
+      }
+    } catch (e) {
+      console.error("Failed to parse drugSchedules from localStorage:", e);
+    }
+
+    // 2. 새로운 스케줄 객체 생성 및 추가 (Date 객체를 JSON 직렬화를 위해 string으로 저장)
+    const newSchedule = {
+      pillName: pillName, // ⭐️ 약품명 추가
+      count: count || "1정", // ⭐️ 복용량 추가
+      memo: memo || "", // ⭐️ 메모 추가
+      days: currentScheduleDays, // 콤마로 구분된 요일 문자열 ("월,화,수")
+      time: currentScheduleTime, // ⭐️ 시간 문자열 ("오후 6시 00분")
+      start: currentScheduleStart.toISOString(),
+      end: currentScheduleEnd.toISOString(),
+    };
+
+    const updatedSchedules = [...existingSchedules, newSchedule];
+
+    // 3. 업데이트된 스케줄 저장
+    localStorage.setItem("drugSchedules", JSON.stringify(updatedSchedules));
+
+    // Main 페이지로 이동
+    navigate("/main");
+  };
 
   return (
     <Container>
@@ -285,24 +506,28 @@ export default function DrugRegistration() {
             setMemo(e.target.value)
           }
         ></Inputtext>
+        {/* ⭐️ Dropdown 컴포넌트로 대체: 복용 일정 */}
         <DropdownWrapper>
           <Dropdown
             label="복용 일정"
+            options={[]} // 모달 사용 시 옵션은 필요 없으므로 빈 배열 전달
             selected={schedule}
-            onSelect={setSchedule}
-            disableDefaultUI={true}
-            options={[]}
-            onClick={() => setModalType("schedule")}
+            onSelect={() => {}}
+            disableDefaultUI={true} // 드롭다운 메뉴 대신 모달 사용
+            onClick={() => setModalType("schedule")} // 클릭 시 모달 열기
+            placeholder=""
           />
         </DropdownWrapper>
+        {/* ⭐️ Dropdown 컴포넌트로 대체: 복용 기간 */}
         <DropdownWrapper>
           <Dropdown
             label="복용 기간"
+            options={[]} // 모달 사용 시 옵션은 필요 없으므로 빈 배열 전달
             selected={period}
-            onSelect={setPeriod}
-            disableDefaultUI={true}
-            options={[]}
-            onClick={() => setModalType("period")}
+            onSelect={() => {}}
+            disableDefaultUI={true} // 드롭다운 메뉴 대신 모달 사용
+            onClick={() => setModalType("period")} // 클릭 시 모달 열기
+            placeholder=""
           />
         </DropdownWrapper>
         <ToggleWrapper>
@@ -312,18 +537,24 @@ export default function DrugRegistration() {
             <ToggleSlider />
           </ToggleLabel>
         </ToggleWrapper>
-        <Submit>등록하기</Submit>
+        <Submit onClick={handleSubmit}>등록하기</Submit>
       </Content>
       {modalType === "schedule" && (
-        <DateModal
+        <EatModal
           isOpen={modalType === "schedule"}
-          onClose={() => setModalType(null)}
+          onClose={handleScheduleClose}
+          initialDay={selectedDay}
+          initialAmPm={selectedAmPm}
+          initialHour={selectedHour}
+          initialMinute={selectedMinute}
         />
       )}
       {modalType === "period" && (
         <DateModal
           isOpen={modalType === "period"}
-          onClose={() => setModalType(null)}
+          onClose={handlePeriodClose}
+          initialStart={selectedStartDate}
+          initialEnd={selectedEndDate}
         />
       )}
     </Container>

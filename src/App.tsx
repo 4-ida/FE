@@ -66,7 +66,7 @@ function App() {
               <Route path="/drink/alcohol" element={<DrinkAlcohol />} />
               <Route path="/nav" element={<Nav />} />
               <Route path="/drug/change" element={<DrugChange />} />
-              <Route path="/todo" element={<Todo />} />
+              <Route path="/drug/change/:id" element={<DrugChange />} />
               <Route
                 path="/date/select"
                 element={
