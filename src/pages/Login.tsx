@@ -4,19 +4,69 @@ import KakaoImg from "../assets/kakao.svg";
 import NaverImg from "../assets/naver.svg";
 import GoogleImg from "../assets/google.svg";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import bb from "../assets/backbutton.svg";
 
 export default function Signup() {
+  const handleGoBack = () => {
+    navigate(-1);
+  };
+  const handleGoToMyPage = () => {
+    navigate("/mypage");
+  };
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-
   const GotoSignup = () => {
     navigate("/Signup");
   };
+  const handleLogin = async () => {
+    try {
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/v1/auth/login`,
+        {
+          email,
+          password,
+        },
+        {
+          withCredentials: true, // ✅ 쿠키 저장 필수!
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      if (res.status === 200) {
+        console.log(" 로그인 성공:", res.data);
+        localStorage.setItem("accessToken", res.data.accessToken);
+        if (localStorage.getItem("justSignedUp") === "true") {
+          localStorage.removeItem("justSignedUp"); // 한 번만 쓰고 지움
+          navigate("/mypage");
+        } else {
+          // 일반 로그인은 홈으로
+          navigate("/");
+        }
+      }
+    } catch (err: any) {
+      console.error(" 로그인 실패:", err);
+      const status = err.response?.status;
+
+      if (status === 400) {
+        console.error("인증 실패(잘못된 이메일 또는 비밀번호)");
+      } else {
+        console.error("로그인 중 오류가 발생했습니다.");
+      }
+    }
+  };
+  const handleGoogleLogin = () => {
+    window.location.href = `${
+      import.meta.env.VITE_API_URL
+    }/oauth2/authorization/google`;
+  };
+
   return (
     <Screen>
       <Header>
-        <Logo>로고</Logo>
+        <Back src={bb} alt="뒤로 가기" onClick={handleGoBack} />
+        <Ht onClick={handleGoToMyPage}>마이페이지</Ht>
       </Header>
       <ContentContainer>
         <Logincontent>
@@ -43,71 +93,77 @@ export default function Signup() {
               ></Box>
             </NameBox>
 
-            <LoginButton>로그인</LoginButton>
+            <LoginButton onClick={handleLogin}>로그인</LoginButton>
           </ContentBox>
           <SignupButton onClick={GotoSignup}>회원가입</SignupButton>
         </Logincontent>
         <SocialLogin>
           <SocialText>SNS 계정으로 로그인</SocialText>
           <SocialLine>
-            <img
-              src={KakaoImg}
-              alt="카카오 소셜로그인"
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                padding: "5px",
-                gap: "5px",
-                isolation: "isolate",
+            <SocialButton>
+              <img
+                src={KakaoImg}
+                alt="카카오 소셜로그인"
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  padding: "5px",
+                  gap: "5px",
+                  isolation: "isolate",
 
-                width: "40px",
-                height: "40px",
+                  width: "40px",
+                  height: "40px",
 
-                background: "#F9E000",
-                borderRadius: "100px",
-                cursor: "pointer",
-              }}
-            />
-            <img
-              src={NaverImg}
-              alt="네이버 소셜로그인"
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                padding: "5px",
-                gap: "5px",
-                isolation: "isolate",
+                  background: "#F9E000",
+                  borderRadius: "100px",
+                  cursor: "pointer",
+                }}
+              />
+            </SocialButton>
+            <SocialButton>
+              <img
+                src={NaverImg}
+                alt="네이버 소셜로그인"
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  padding: "5px",
+                  gap: "5px",
+                  isolation: "isolate",
 
-                width: "40px",
-                height: "40px",
+                  width: "40px",
+                  height: "40px",
 
-                background: "#2BC622",
-                borderRadius: "100px",
-                cursor: "pointer",
-              }}
-            />
-            <img
-              src={GoogleImg}
-              alt="구글 소셜로그인"
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                padding: "5px",
-                gap: "5px",
-                isolation: "isolate",
+                  background: "#2BC622",
+                  borderRadius: "100px",
+                  cursor: "pointer",
+                }}
+              />
+            </SocialButton>
+            <SocialButton onClick={handleGoogleLogin}>
+              <img
+                src={GoogleImg}
+                alt="구글 소셜로그인"
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  padding: "5px",
+                  gap: "5px",
+                  isolation: "isolate",
 
-                width: "40px",
-                height: "40px",
+                  width: "40px",
+                  height: "40px",
 
-                background: "#FFFFFF",
-                borderRadius: "100px",
-                border: "1px solid #767676",
-                cursor: "pointer",
-              }}
-            />
+                  background: "#FFFFFF",
+                  borderRadius: "100px",
+                  border: "1px solid #767676",
+                  cursor: "pointer",
+                }}
+              />
+            </SocialButton>
           </SocialLine>
         </SocialLogin>
       </ContentContainer>
@@ -122,38 +178,23 @@ const Screen = styled.div`
 `;
 const Header = styled.div`
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 18px 17px;
-  gap: 10px;
-  isolation: isolate;
-
-  position: absolute;
-  width: 393px;
+  width: 100%;
   height: 60px;
-  left: 0px;
-  top: 0px;
+  align-items: center;
+  padding: 0 15px;
+  box-sizing: border-box;
+  justify-content: space-between;
 `;
-const Logo = styled.div`
-  position: absolute;
-  width: 85px;
-  height: 27px;
-  left: calc(50% - 85px / 2);
-  top: calc(50% - 27px / 2 + 0.5px);
+const Back = styled.img`
+  color: #333;
+  cursor: pointer;
+`;
 
+const Ht = styled.div`
   font-family: "Pretendard";
-  font-style: normal;
-  font-weight: 600;
-  font-size: 23px;
-  line-height: 27px;
-
-  color: #333333;
-
-  /* 내부 오토레이아웃 */
-  flex: none;
-  order: 0;
-  flex-grow: 0;
-  z-index: 0;
+  font-weight: 500;
+  font-size: 15px;
+  cursor: pointer;
 `;
 const ContentContainer = styled.div`
   /* Frame 1707485872 */
@@ -342,4 +383,19 @@ const SocialLine = styled.div`
   flex: none;
   order: 1;
   flex-grow: 0;
+`;
+const SocialButton = styled.button`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%; /* 동그랗게 만들기 */
+
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: scale(1.05);
+  }
 `;

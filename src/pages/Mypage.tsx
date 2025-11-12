@@ -1,21 +1,99 @@
 import styled from "styled-components";
 import Dropdown from "../pages/DropDown";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import bb from "../assets/backbutton.svg";
+import axios from "axios";
+
 export default function Mypage() {
   const caffeineOptions = ["약함", "보통", "강함"];
   const drinkOptions = ["없음", "가끔", "자주"];
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [caffeine, setCaffeine] = useState("");
-  const [drink, setDrink] = useState("");
+  const [caffeineSensitivity, setCaffeineSensitivity] = useState("");
+  const [drinkingPattern, setDrinkingPattern] = useState("");
+  const navigate = useNavigate();
+  const handleGoBack = () => {
+    navigate(-1);
+  };
+  const sensitivityMap: Record<string, string> = {
+    약함: "LOW",
+    보통: "NORMAL",
+    강함: "STRONG",
+  };
+
+  const alcoholMap: Record<string, string> = {
+    가끔: "NONE",
+    자주: "SOMETIMES",
+    매일: "OFTEN",
+  };
+  useEffect(() => {
+    const fetchMyPage = async () => {
+      const token = localStorage.getItem("accessToken");
+
+      if (!token) {
+        console.error("❌ 토큰 없음 → 로그인 필요");
+        return;
+      }
+
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/v1/users/profile/me`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`, // ✅ 토큰 보내기
+            },
+          }
+        );
+
+        console.log("✅ 프로필 조회 성공:", res.data);
+      } catch (err: any) {
+        console.error("조회 실패:", err.response);
+      }
+    };
+
+    fetchMyPage();
+  }, []);
+
+  const handleUpdateProfile = async () => {
+    const token = localStorage.getItem("accessToken");
+
+    if (!token) {
+      console.error("❌ 토큰 없음 → 로그인 필요");
+      return;
+    }
+
+    try {
+      const res = await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/v1/users/profile/me`,
+        {
+          name,
+          email,
+          caffeineSensitivity: sensitivityMap[caffeineSensitivity],
+          alcoholPattern: alcoholMap[drinkingPattern],
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // ✅ 토큰 포함
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("✅ 프로필 수정 성공:", res.data);
+    } catch (err: any) {
+      console.error("수정 실패:", err.response);
+    }
+  };
+
   return (
     <Screen>
       <Header>
-        <Logo>로고</Logo>
+        <Back src={bb} alt="뒤로 가기" onClick={handleGoBack} />
       </Header>
       <Profile>
         <Picture></Picture>
-        <Hello>“ 홍길동님, 안녕하세요! ”</Hello>
+        <Hello>“ {name}님, 안녕하세요! ”</Hello>
       </Profile>
       <Content>
         <NameBox>
@@ -40,16 +118,17 @@ export default function Mypage() {
         </NameBox>
         <Dropdown
           label="카페인 민감도"
-          selected={caffeine}
+          selected={caffeineSensitivity}
           options={caffeineOptions}
-          onSelect={setCaffeine}
+          onSelect={setCaffeineSensitivity}
         />
         <Dropdown
           label="음주 패턴"
-          selected={drink}
+          selected={drinkingPattern}
           options={drinkOptions}
-          onSelect={setDrink}
+          onSelect={setDrinkingPattern}
         />
+        <SignUpButton onClick={handleUpdateProfile}>저장하기</SignUpButton>
       </Content>
     </Screen>
   );
@@ -63,35 +142,16 @@ const Screen = styled.div`
 `;
 const Header = styled.div`
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 18px 17px;
-  gap: 10px;
-  isolation: isolate;
-
-  position: absolute;
-  width: 359px;
-  height: 26px;
-  left: 0px;
-  top: 0px;
+  width: 100%;
+  height: 60px;
+  align-items: center;
+  padding: 0 15px;
+  box-sizing: border-box;
+  justify-content: space-between;
 `;
-const Logo = styled.div`
-  position: absolute;
-  width: 35px;
-  height: 24px;
-  left: calc(50% - 35px / 2 - 1px);
-  top: calc(50% - 24px / 2);
-
-  font-family: "Pretendard";
-  font-style: normal;
-  font-weight: 600;
-  font-size: 20px;
-  line-height: 24px;
-  color: #333333;
-  flex: none;
-  order: 0;
-  flex-grow: 0;
-  z-index: 0;
+const Back = styled.img`
+  color: #333;
+  cursor: pointer;
 `;
 const Profile = styled.div`
   display: flex;
@@ -188,4 +248,21 @@ const Box = styled.input<{ type: string; value: string }>`
   font-weight: 400;
   font-size: 16px;
   line-height: 19px;
+`;
+const SignUpButton = styled.button`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 363px;
+  height: 45px;
+  background: #b6f500;
+  border-radius: 5px;
+  border: none;
+  font-family: "Pretendard";
+  font-weight: 500;
+  font-size: 18px;
+  color: #333333;
+  cursor: pointer;
+  padding: 10px;
+  text-align: center;
 `;
