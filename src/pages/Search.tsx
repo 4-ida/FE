@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import Nav from "../components/nav";
 import arrow1_ from "../assets/arrow1.svg";
 import arrow2 from "../assets/arrow2.svg";
+import axios from "axios";
 
 interface Drug {
   id: number;
@@ -14,24 +15,8 @@ interface Drug {
 }
 
 export default function Search() {
-  const [find, setFind] = useState("");
+  const [query, setQuery] = useState("");
   const [drugs, setDrugs] = useState<Drug[]>([]);
-  const mockData: Drug[] = [
-    { id: 1, name: "타이레놀 500mg", image: "/Ty.svg", bookmarked: false },
-    {
-      id: 2,
-      name: "타이레놀 콜드 이소정",
-      image: "/cold.svg",
-      bookmarked: false,
-    },
-    { id: 3, name: "게보린", image: "/gebo.svg", bookmarked: false },
-    { id: 4, name: "판피린", image: "/pan.svg", bookmarked: false },
-    { id: 5, name: "부루펜", image: "/bru.svg", bookmarked: false },
-    { id: 6, name: "이지엔6", image: "/ez6.svg", bookmarked: false },
-    { id: 7, name: "펜잘큐", image: "/pen.svg", bookmarked: false },
-    { id: 8, name: "애드빌", image: "/advil.svg", bookmarked: false },
-    { id: 9, name: "베아제", image: "/bea.svg", bookmarked: false },
-  ];
   const Navigate = useNavigate();
   const gotoInformation = (id: number) => {
     Navigate(`/drug/information/${id}`);
@@ -47,7 +32,9 @@ export default function Search() {
   // 북마크만 보기
   const bookmarked = drugs.filter((d) => d.bookmarked);
 
-  const filteredDrugs = drugs.filter((drug) => drug.name.includes(find.trim()));
+  const filteredDrugs = drugs.filter((drug) =>
+    drug.name.includes(query.trim())
+  );
 
   // ⭐ 북마크 보기 필터 적용
   const displayedDrugs = showBookmarksOnly
@@ -56,17 +43,17 @@ export default function Search() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const limit = 5;
+
   useEffect(() => {
-    // 지금은 목데이터 기반으로 검색 및 페이지네이션
-    const filtered = mockData.filter((drug) =>
-      drug.name.toLowerCase().includes(find.toLowerCase())
+    const filtered = drugs.filter((drug) =>
+      drug.name.toLowerCase().includes(query.toLowerCase())
     );
     setTotalPages(Math.ceil(filtered.length / limit));
 
     const startIndex = (currentPage - 1) * limit;
     const paginated = filtered.slice(startIndex, startIndex + limit);
     setDrugs(paginated);
-  }, [find, currentPage]);
+  }, [query, currentPage]);
   const handlePrev = () => {
     if (currentPage > 1) setCurrentPage((prev) => prev - 1);
   };
@@ -77,15 +64,67 @@ export default function Search() {
     setCurrentPage(page);
   };
 
+  useEffect(() => {
+    const Search = async (query: string) => {
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_URL} /api/v1/drug/search`,
+          {
+            params: {
+              q: query,
+              page: 1,
+              size: 5,
+            },
+          }
+        );
+        if (res.status === 200) {
+          console.log("약 명 검색 성공");
+        }
+      } catch (err: any) {
+        console.error("검색 실패", err);
+      }
+    };
+    if (query) Search(query);
+  }, [query]);
+
+  const auto = async () => {
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/v1/drug/suggest`,
+        {
+          params: {
+            q: query,
+            limit: 10,
+          },
+        }
+      );
+
+      if (res.status === 200) {
+        console.log("약 명 자동완성 성공 ");
+        console.log(res.data);
+      }
+    } catch (err: any) {
+      console.error("자동완성 실패 ", err);
+    }
+  };
+
+  useEffect(() => {
+    if (query) {
+      auto();
+    } else {
+      setSuggestions([]);
+    }
+  }, [query]);
+
   return (
     <Screen>
       <SearchContainer>
         <SearchBox>
           <SearchText
             type="text"
-            value={find}
+            value={query}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setFind(e.target.value)
+              setQuery(e.target.value)
             }
           />
           <SearchIcon></SearchIcon>
@@ -100,7 +139,7 @@ export default function Search() {
         </BookmarkIcon>
       </SearchContainer>
 
-      {find.trim() !== "" && (
+      {query.trim() !== "" && (
         <ProductList>
           {displayedDrugs.length > 0 ? (
             displayedDrugs.map((drug) => (
@@ -141,7 +180,7 @@ export default function Search() {
           )}
         </ProductList>
       )}
-      {find.trim() !== "" && displayedDrugs.length > 1 && (
+      {query.trim() !== "" && displayedDrugs.length > 1 && (
         <PageNumberBox>
           <NumberLine>
             <ArrowButton src={arrow1_} alt="이전" onClick={handlePrev} />
