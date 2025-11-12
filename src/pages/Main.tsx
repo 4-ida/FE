@@ -241,6 +241,11 @@ export default function Main() {
         pillName: schedule.pillName,
         dailyStatus: "SCHEDULED",
         completionStatus: "NONE",
+        memo: schedule.memo,
+        count: schedule.count,
+        days: schedule.days,
+        start: schedule.start,
+        end: schedule.end,
       }));
   };
 
