@@ -6,31 +6,33 @@ import Nav from "../components/nav";
 import arrow1_ from "../assets/arrow1.svg";
 import arrow2 from "../assets/arrow2.svg";
 import axios from "axios";
+import axiosInstance from "../axiosInstance";
 
 interface Drug {
-  id: number;
+  drugId: string;
   name: string;
-  image: string;
+  thumbnailUrl: string;
   bookmarked: boolean;
 }
 
 export default function Search() {
   const [query, setQuery] = useState("");
   const [drugs, setDrugs] = useState<Drug[]>([]);
+  const token = localStorage.getItem("accessToken");
+  const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
   const Navigate = useNavigate();
-  const gotoInformation = (id: number) => {
-    Navigate(`/drug/information/${id}`);
+  const gotoInformation = (drugId: string) => {
+    Navigate(`/drug/information/${drugId}`);
   };
   const toggleBookmark = (id: number) => {
     setDrugs((prev) =>
       prev.map((drug) =>
-        drug.id === id ? { ...drug, bookmarked: !drug.bookmarked } : drug
+        drug.drugId === drug.drugId
+          ? { ...drug, bookmarked: !drug.bookmarked }
+          : drug
       )
     );
   };
-  const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
-  // 북마크만 보기
-  const bookmarked = drugs.filter((d) => d.bookmarked);
 
   const filteredDrugs = drugs.filter((drug) =>
     drug.name.includes(query.trim())
@@ -44,6 +46,7 @@ export default function Search() {
   const [totalPages, setTotalPages] = useState(1);
   const limit = 5;
 
+  // 페이지네이션
   useEffect(() => {
     const filtered = drugs.filter((drug) =>
       drug.name.toLowerCase().includes(query.toLowerCase())
@@ -64,21 +67,20 @@ export default function Search() {
     setCurrentPage(page);
   };
 
+  // 검색창 API 연동
   useEffect(() => {
     const Search = async (query: string) => {
       try {
-        const res = await axios.get(
-          `${import.meta.env.VITE_API_URL} /api/v1/drug/search`,
-          {
-            params: {
-              q: query,
-              page: 1,
-              size: 5,
-            },
-          }
-        );
-        if (res.status === 200) {
-          console.log("약 명 검색 성공");
+        const res = await axiosInstance.get(`/api/v1/drug/search`, {
+          params: { q: query, page: 0, size: 5 },
+          headers: {
+            Authorization: `Bearer ${token}`, // ✅ 인증 토큰 추가
+          },
+        });
+
+        console.log("약 명 검색 성공:", res.data);
+        if (Array.isArray(res.data.items)) {
+          setDrugs(res.data.items); // 이제 타입 에러 안 남!
         }
       } catch (err: any) {
         console.error("검색 실패", err);
@@ -87,6 +89,7 @@ export default function Search() {
     if (query) Search(query);
   }, [query]);
 
+  // 자동완성 API 연동
   const auto = async () => {
     try {
       const res = await axios.get(
@@ -95,6 +98,9 @@ export default function Search() {
           params: {
             q: query,
             limit: 10,
+          },
+          headers: {
+            Authorization: `Bearer ${token}`, // ✅ 인증 토큰 추가
           },
         }
       );
@@ -108,13 +114,71 @@ export default function Search() {
     }
   };
 
-  useEffect(() => {
-    if (query) {
-      auto();
-    } else {
-      setSuggestions([]);
+  // 북마크 추가
+  const handleBookmark = async (drugId: string) => {
+    try {
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/v1/drug/bookmarks/${drugId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (res.status === 200) {
+        console.log("약물 북마크 추가 성공");
+        console.log(res.data);
+      }
+    } catch (err: any) {
+      console.error("북마크 추가 실패", err);
     }
-  }, [query]);
+  };
+
+  // 북마크 제거
+  const DeleteBookmark = async (drugId: string) => {
+    try {
+      const res = await axios.delete(
+        `${import.meta.env.VITE_API_URL}/api/v1/drug/bookmarks/${drugId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (res.status === 200) {
+        console.log("약물 북마크 취소 성공");
+        console.log(res.data);
+      }
+    } catch (err: any) {
+      console.error("북마크 취소 실패", err);
+    }
+  };
+
+  // 북마크 목록 조회
+  const Bookmark = async () => {
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/v1/drug/bookmarks`,
+        {
+          params: {
+            page: 0,
+            size: 20,
+            sort: "recent",
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (res.status === 200) {
+        console.log("⭐ 약물 북마크 목록 조회 성공");
+        console.log(res.data);
+      }
+    } catch (err: any) {
+      console.error("북마크 목록 조회 실패", err);
+    }
+  };
 
   return (
     <Screen>
@@ -123,9 +187,11 @@ export default function Search() {
           <SearchText
             type="text"
             value={query}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setQuery(e.target.value)
-            }
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              const value = e.target.value;
+              setQuery(value);
+              auto();
+            }}
           />
           <SearchIcon></SearchIcon>
         </SearchBox>
@@ -144,12 +210,18 @@ export default function Search() {
           {displayedDrugs.length > 0 ? (
             displayedDrugs.map((drug) => (
               <ProductBox
-                key={drug.id}
-                onClick={() => gotoInformation(drug.id)}
+                key={drug.drugId}
+                onClick={() => {
+                  if (drug.drugId === undefined) {
+                    console.error("❗ drug.id가 undefined입니다.", drug);
+                  } else {
+                    gotoInformation(drug.drugId);
+                  }
+                }}
               >
                 <Group>
                   <img
-                    src={drug.image}
+                    src={drug.thumbnailUrl}
                     alt={drug.name}
                     style={{
                       width: "100px",
@@ -162,7 +234,17 @@ export default function Search() {
                     <BookmarkIcon
                       onClick={(e) => {
                         e.stopPropagation(); // 부모 클릭(페이지 이동) 방지
-                        toggleBookmark(drug.id);
+
+                        if (drug.bookmarked) {
+                          // 이미 북마크된 경우 → 북마크 해제
+                          DeleteBookmark(drug.drugId.toString());
+                        } else {
+                          // 아직 북마크 안 된 경우 → 북마크 추가
+                          handleBookmark(drug.drugId.toString());
+                        }
+
+                        // UI 상태 즉시 반영 (색상 토글)
+                        toggleBookmark(drug.drugId);
                       }}
                     >
                       {drug.bookmarked ? (

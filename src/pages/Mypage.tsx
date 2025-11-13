@@ -3,7 +3,7 @@ import Dropdown from "../pages/DropDown";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import bb from "../assets/backbutton.svg";
-import axios from "axios";
+import axiosInstance from "../axiosInstance";
 
 export default function Mypage() {
   const caffeineOptions = ["약함", "보통", "강함"];
@@ -17,45 +17,19 @@ export default function Mypage() {
     navigate(-1);
   };
   const sensitivityMap: Record<string, string> = {
-    약함: "LOW",
+    약함: "WEAK",
     보통: "NORMAL",
     강함: "STRONG",
   };
 
   const alcoholMap: Record<string, string> = {
-    가끔: "NONE",
-    자주: "SOMETIMES",
-    매일: "OFTEN",
+    없음: "NONE",
+    가끔: "SOMETIMES",
+    자주: "OFTEN",
   };
-  useEffect(() => {
-    const fetchMyPage = async () => {
-      const token = localStorage.getItem("accessToken");
 
-      if (!token) {
-        console.error("❌ 토큰 없음 → 로그인 필요");
-        return;
-      }
-
-      try {
-        const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/v1/users/profile/me`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`, // ✅ 토큰 보내기
-            },
-          }
-        );
-
-        console.log("✅ 프로필 조회 성공:", res.data);
-      } catch (err: any) {
-        console.error("조회 실패:", err.response);
-      }
-    };
-
-    fetchMyPage();
-  }, []);
-
-  const handleUpdateProfile = async () => {
+  // 프로필 조회 API
+  const fetchMyPage = async () => {
     const token = localStorage.getItem("accessToken");
 
     if (!token) {
@@ -64,25 +38,67 @@ export default function Mypage() {
     }
 
     try {
-      const res = await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/v1/users/profile/me`,
-        {
-          name,
-          email,
-          caffeineSensitivity: sensitivityMap[caffeineSensitivity],
-          alcoholPattern: alcoholMap[drinkingPattern],
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`, // ✅ 토큰 포함
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const res = await axiosInstance.get(`/api/v1/users/profile/me`);
 
-      console.log("✅ 프로필 수정 성공:", res.data);
+      console.log("✅ 프로필 조회 성공:", res.data);
+      setName(res.data.name);
+      setEmail(res.data.email);
+      // 필요한 경우 caffeineSensitivity, drinkingPattern 도 여기서 설정
     } catch (err: any) {
-      console.error("수정 실패:", err.response);
+      console.error("조회 실패:", err.response);
+    }
+  };
+
+  useEffect(() => {
+    fetchMyPage();
+    handleUpdateProfile();
+  }, []);
+
+  // 프로필 수정 API
+  const handleUpdateProfile = async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      console.error("❌ 토큰 없음 → 로그인 필요");
+      return;
+    }
+
+    try {
+      const res = await axiosInstance.put(`/api/v1/users/profile/me`, {
+        name,
+        email,
+        caffeineSensitivity: sensitivityMap[caffeineSensitivity],
+        alcoholPattern: alcoholMap[drinkingPattern],
+      });
+
+      console.log("🟡 보낼 데이터:", {
+        name,
+        email,
+        caffeineSensitivity: sensitivityMap[caffeineSensitivity],
+        alcoholPattern: alcoholMap[drinkingPattern],
+      });
+
+      const reverseSensitivityMap: Record<string, string> = {
+        WEAK: "약함",
+        NORMAL: "보통",
+        STRONG: "강함",
+      };
+      const reverseAlcoholMap: Record<string, string> = {
+        NONE: "없음",
+        SOMETIMES: "가끔",
+        OFTEN: "자주",
+      };
+
+      if (res.data.caffeineSensitivity)
+        setCaffeineSensitivity(
+          reverseSensitivityMap[res.data.caffeineSensitivity]
+        );
+
+      if (res.data.alcoholPattern)
+        setDrinkingPattern(reverseAlcoholMap[res.data.alcoholPattern]);
+
+      fetchMyPage(); // 🔥 이렇게 바로 다시 조회해서 최신 데이터 반영
+    } catch (err) {
+      console.error("조회 실패:");
     }
   };
 
@@ -108,13 +124,7 @@ export default function Mypage() {
         </NameBox>
         <NameBox>
           <Name>이메일</Name>
-          <Box
-            type="text"
-            value={email}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setEmail(e.target.value)
-            }
-          ></Box>
+          <EmailBox type="text" value={email} disabled></EmailBox>
         </NameBox>
         <Dropdown
           label="카페인 민감도"
@@ -232,6 +242,25 @@ const Name = styled.div`
   flex-grow: 0;
 `;
 const Box = styled.input<{ type: string; value: string }>`
+  width: 363px;
+  height: 40px;
+  box-sizing: border-box;
+  background: #ffffff;
+  border: 1.5px solid #ebebeb;
+  border-radius: 5px;
+  flex: none;
+  order: 1;
+  align-self: stretch;
+  flex-grow: 0;
+  padding-left: 10px;
+  font-family: "Pretendard";
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 19px;
+`;
+
+const EmailBox = styled.input`
   width: 363px;
   height: 40px;
   box-sizing: border-box;

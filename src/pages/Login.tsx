@@ -20,6 +20,8 @@ export default function Signup() {
   const GotoSignup = () => {
     navigate("/Signup");
   };
+
+  //일반 로그인
   const handleLogin = async () => {
     try {
       const res = await axios.post(
@@ -56,11 +58,27 @@ export default function Signup() {
       }
     }
   };
+
+  // 구글 소셜 로그인
   const handleGoogleLogin = () => {
     window.location.href = `${
       import.meta.env.VITE_API_URL
     }/oauth2/authorization/google`;
   };
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+
+    if (token) {
+      localStorage.setItem("accessToken", token);
+
+      navigate("/mypage");
+    } else {
+      alert("로그인 실패");
+      navigate("/login");
+    }
+  }, []);
 
   return (
     <Screen>

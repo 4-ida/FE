@@ -26,9 +26,14 @@ export default function Dropdown({
   placeholder = "선택해 주세요",
 }: DropdownProps) {
   const [show, setShow] = useState(false);
-  const [openUp, setOpenUp] = useState(false); // ✅ 추가
+  const [openUp, setOpenUp] = useState(false);
+  const [displayValue, setDisplayValue] = useState(selected); // ✅ 추가
   const ref = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null); // ✅ 버튼 위치 확인용
+
+  useEffect(() => {
+    setDisplayValue(selected);
+  }, [selected]);
 
   const toggleDropdown = () => {
     if (disableDefaultUI) {
@@ -50,6 +55,8 @@ export default function Dropdown({
   }, [show]);
 
   const handleSelect = (value: string) => {
+    setDisplayValue(value); // ✅ 표시용 값 변경
+    onSelect(value); // ✅ 부모 상태 갱신
     onSelect(value);
     setShow(false);
   };

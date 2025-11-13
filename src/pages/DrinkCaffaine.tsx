@@ -1,12 +1,15 @@
 import styled from "styled-components";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Nav from "../components/nav";
 import bb from "../assets/backbutton.svg";
 import { useNavigate } from "react-router-dom";
 import Dropdown from "../pages/DropDown";
+import axios from "axios";
+import axiosInstance from "../axiosInstance";
 
 export default function DrinkCaffaine() {
-  const [drink, setDrink] = useState("");
+  const [beverageName, setBeverageName] = useState("");
+  const [morning, setMorning] = useState("");
   const drinkOptions = ["오전", "오후"];
   const [time, setTime] = useState("시");
   const timeOptions = [
@@ -23,8 +26,8 @@ export default function DrinkCaffaine() {
     "11시",
     "12시",
   ];
-  const [caffaine, setCaffaine] = useState("");
-  const [percent, setPercent] = useState("");
+  const [caffeineMg, setCaffeineMg] = useState("");
+  const [intakeRatio, setIntakeRatio] = useState("");
   const [minute, setMinute] = useState("");
   const navigate = useNavigate();
   const handleGoBack = () => {
@@ -37,20 +40,38 @@ export default function DrinkCaffaine() {
     navigate("/whatdrink");
   };
   const first = {
-    drink: "",
-    caffaine: "",
-    percent: "",
+    beverageName: "",
+    caffeineMg: "",
+    intakeRatio: "",
     ampm: "",
     time: "",
     minute: "",
+    morning: "",
   };
   const handleReset = () => {
-    setDrink(first.drink);
+    setBeverageName(first.beverageName);
     setTime(first.time);
-    setCaffaine(first.caffaine);
-    setPercent(first.percent);
+    setCaffeineMg(first.caffeineMg);
+    setIntakeRatio(first.intakeRatio);
     setMinute(first.minute);
+    setMorning(first.morning);
   };
+
+  const handleCaffaine = async () => {
+    try {
+      const res = await axiosInstance.post(
+        `${import.meta.env.VITE_API_URL}/api/v1/intakespage/intakes/caffeine `
+      );
+
+      if (res.status === 200) {
+        console.log("카페인 섭취 등록 성공 ");
+        console.log(res.data);
+      }
+    } catch (err: any) {
+      console.error("카페인 섭취등록 실패 ", err);
+    }
+  };
+
   return (
     <Screen>
       <Header>
@@ -60,7 +81,13 @@ export default function DrinkCaffaine() {
       <Container>
         <DrinkBox>
           <DrinkText>섭취 음료</DrinkText>
-          <LongBox>커피</LongBox>
+          <LongBox
+            type="text"
+            value={beverageName}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setBeverageName(e.target.value)
+            }
+          />
         </DrinkBox>
         <ContainBox>
           <CaffaineBox>
@@ -68,9 +95,9 @@ export default function DrinkCaffaine() {
             <CaffaineWrapper>
               <Caffaine
                 type="number"
-                value={caffaine}
+                value={caffeineMg}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setCaffaine(e.target.value)
+                  setCaffeineMg(e.target.value)
                 }
               ></Caffaine>
               <Text>mg</Text>
@@ -81,9 +108,9 @@ export default function DrinkCaffaine() {
             <CaffaineWrapper>
               <Caffaine
                 type="number"
-                value={percent}
+                value={intakeRatio}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setPercent(e.target.value)
+                  setIntakeRatio(e.target.value)
                 }
               ></Caffaine>
               <Text>%</Text>
@@ -95,9 +122,9 @@ export default function DrinkCaffaine() {
           <DropdownLine>
             <Dropdown
               variant="custom"
-              selected={drink}
+              selected={morning}
               options={drinkOptions}
-              onSelect={setDrink}
+              onSelect={setMorning}
             ></Dropdown>
             <Dropdown
               variant="custom"
@@ -119,7 +146,7 @@ export default function DrinkCaffaine() {
       </Container>
       <ButtonLine>
         <CaffainePlus onClick={handleReset}>초기화</CaffainePlus>
-        <AlcoholPlus onClick={GotoWhatDrink}>완료</AlcoholPlus>
+        <AlcoholPlus onClick={handleCaffaine}>완료</AlcoholPlus>
       </ButtonLine>
       <Nav />
     </Screen>
@@ -200,7 +227,7 @@ const DrinkText = styled.div`
   align-self: stretch;
   flex-grow: 0;
 `;
-const LongBox = styled.div`
+const LongBox = styled.input`
   width: 353px;
   height: 40px;
 

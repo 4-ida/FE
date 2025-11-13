@@ -53,7 +53,7 @@ function App() {
               <Route path="/signup" element={<Signup />} />
               <Route path="/drug/register" element={<DrugRegistration />} />
               <Route
-                path="/drug/information/:id"
+                path="/drug/information/:drugId"
                 element={<DrugInformation />}
               />
               <Route path="/search" element={<Search />} />

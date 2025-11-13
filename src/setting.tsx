@@ -37,7 +37,7 @@ const Setting = () => {
         약 등록
       </SettingBtn>
       <SettingBtn onClick={() => navigate("/search")}>약 검색</SettingBtn>
-      <SettingBtn onClick={() => navigate("/drug/information")}>
+      <SettingBtn onClick={() => navigate("/drug/information/:drugId")}>
         약 상세정보
       </SettingBtn>
       <SettingBtn onClick={() => navigate("/drug/bookmark")}>북마크</SettingBtn>
