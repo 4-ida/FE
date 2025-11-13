@@ -167,7 +167,6 @@ interface TimeSelectionModalProps {
   initialMinute?: string;
 }
 
-const DAYS = ["월", "화", "수", "목", "금", "토", "일"];
 const AM_PM = ["오후", "오전"];
 const HOURS = Array.from({ length: 12 }, (_, i) => `${i + 1}시`);
 const MINUTES = ["00분", "10분", "20분", "30분", "40분", "50분"];
@@ -175,25 +174,22 @@ const MINUTES = ["00분", "10분", "20분", "30분", "40분", "50분"];
 export default function TimeSelectionModal({
   isOpen,
   onClose,
-  initialDay = "화",
   initialAmPm = "오후",
   initialHour = "6시",
   initialMinute = "00분",
 }: TimeSelectionModalProps) {
   const [isClosing, setIsClosing] = useState(false);
-  const [selectedDays, setSelectedDays] = useState<string[]>([initialDay]);
   const [times, setTimes] = useState<
     { amPm: string; hour: string; minute: string }[]
   >([{ amPm: initialAmPm, hour: initialHour, minute: initialMinute }]);
 
   useEffect(() => {
     if (isOpen) {
-      setSelectedDays([initialDay]);
       setTimes([
         { amPm: initialAmPm, hour: initialHour, minute: initialMinute },
       ]);
     }
-  }, [isOpen, initialDay, initialAmPm, initialHour, initialMinute]);
+  }, [isOpen, initialAmPm, initialHour, initialMinute]);
 
   if (!isOpen && !isClosing) return null;
 
@@ -201,22 +197,18 @@ export default function TimeSelectionModal({
     setIsClosing(true);
     setTimeout(() => {
       onClose(
-        sendData ? selectedDays.join(", ") : undefined, // ✅ 배열을 콤마 구분 문자열로 변경
+        // 첫 번째 인자인 selectedDay는 사용하지 않으므로 undefined나 빈 문자열을 전달
+        undefined,
+        // sendData가 true일 때만 시간을 포맷하여 전달
         sendData
           ? times.map((t) => `${t.amPm} ${t.hour} ${t.minute}`).join(", ")
-          : undefined
+          : undefined // sendData가 false일 때도 두 번째 인자는 명시적으로 undefined를 전달
       );
       setIsClosing(false);
     }, 300);
   };
 
-  const handleDayClick = (day: string) => {
-    if (selectedDays.includes(day)) {
-      setSelectedDays(selectedDays.filter((d) => d !== day));
-    } else {
-      setSelectedDays([...selectedDays, day]);
-    }
-  };
+  const handleFinish = () => handleClose(true);
 
   const handleTimeChange = (
     index: number,
@@ -232,24 +224,9 @@ export default function TimeSelectionModal({
     setTimes([...times, { amPm: "오후", hour: "6시", minute: "00분" }]);
   };
 
-  const handleFinish = () => handleClose(true);
-
   return (
     <Container onClick={() => !isClosing && handleClose()}>
       <ModalContent $closing={isClosing} onClick={(e) => e.stopPropagation()}>
-        <SectionTitle>요일을 선택해 주세요.</SectionTitle>
-        <DayContainer>
-          {DAYS.map((day) => (
-            <DayCircle
-              key={day}
-              $selected={selectedDays.includes(day)}
-              onClick={() => handleDayClick(day)}
-            >
-              {day}
-            </DayCircle>
-          ))}
-        </DayContainer>
-
         <SectionTitle>시간을 선택해 주세요.</SectionTitle>
         {times.map((time, index) => (
           <TimeContainer key={index}>
@@ -271,9 +248,9 @@ export default function TimeSelectionModal({
               onSelect={(val) => handleTimeChange(index, "minute", val)}
               variant="custom"
             />
-            {index === times.length - 1 && (
+            {/* {index === times.length - 1 && (
               <AddTimeButton type="button" onClick={handleAddTime} />
-            )}
+            )} */}
           </TimeContainer>
         ))}
 
