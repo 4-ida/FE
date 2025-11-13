@@ -24,22 +24,6 @@ interface DrugDetail {
   images: string;
 }
 export default function DrugInformation() {
-  useEffect(() => {
-    const Details = async (drugId: string) => {
-      try {
-        const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/v1/drug/details/${drugId}`
-        );
-        if (res.status === 200) {
-          console.log("약품상세조회 성공");
-          console.log(res.data);
-        }
-      } catch (err: any) {
-        console.error("조회 실패", err);
-      }
-    };
-    if (drugId) Details(drugId);
-  }, []);
   const { drugId } = useParams<{ drugId: string }>(); // URL에서 id 가져오기
   const numericId = Number(drugId); // string → number로 변환
   const navigate = useNavigate();
@@ -50,6 +34,30 @@ export default function DrugInformation() {
     navigate("/mypage");
   };
   const [drug, setDrug] = useState<DrugDetail | null>(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    const Details = async (drugId: string) => {
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/v1/drug/details/${drugId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`, // ✅ 이거 빠졌을 가능성 큼
+            },
+          }
+        );
+        if (res.status === 200) {
+          console.log("약품상세조회 성공");
+          console.log(res.data);
+          setDrug(res.data);
+        }
+      } catch (err: any) {
+        console.error("조회 실패", err);
+      }
+    };
+    if (drugId) Details(drugId);
+  }, []);
 
   if (!drug) return <div>Loading...</div>;
   return (
@@ -72,7 +80,22 @@ export default function DrugInformation() {
               <Box>{drug.strength}</Box>
             </TitleBox>
           </RightBox>
-          <img src={drug.images} alt={drug.name} />
+          <img
+            src={drug.images}
+            alt={drug.name}
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: "10px",
+
+              width: "150px",
+              height: "150px",
+
+              borderRadius: "10px",
+            }}
+          />
         </UpContainer>
         <DownContainer>
           <BigBox>

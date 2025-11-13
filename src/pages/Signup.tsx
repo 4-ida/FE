@@ -29,7 +29,7 @@ export default function Signup() {
             { params: { email } }
           );
 
-          if (res.status === 200 && res.data.data.isAvailable === true) {
+          if (res.status === 200 && res.data.data.available === true) {
             console.log("사용가능한 이메일");
             setEmailValid(true);
           } else {
@@ -98,6 +98,7 @@ export default function Signup() {
 
       if (res.status === 201) {
         console.log(" 회원가입 성공:", res.data);
+
         alert("회원가입이 완료되었습니다!");
         localStorage.setItem("justSignedUp", "true");
         navigate("/login");
