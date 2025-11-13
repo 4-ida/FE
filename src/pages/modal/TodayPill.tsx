@@ -76,6 +76,9 @@ const BaseButton = styled.button`
   font-size: 14px;
   font-weight: 500;
   border: none;
+  cursor: default;
+  width: 55px;
+  height: 27px;
 `;
 
 const StatusButton = styled(BaseButton)<{ $status: "SCHEDULED" | "CANCELED" }>`
@@ -221,9 +224,7 @@ export default function TodayPill({
                       <BaseButton
                         style={{ backgroundColor: "#EDEDED", minWidth: "55px" }}
                         onClick={() => onCompletionChange(pill.id, "COMPLETED")}
-                      >
-                        완료
-                      </BaseButton>
+                      ></BaseButton>
                     ) : (
                       // 완료 또는 미섭취 상태 표시
                       <CompletionButton
@@ -260,6 +261,7 @@ export default function TodayPill({
                   <ActionMenu>
                     <MenuItem
                       onClick={() => {
+                        console.log(pill);
                         navigate(`/drug/change/${pill.id}`, {
                           state: { pill },
                         }); // ✅ 수정 페이지로 이동

@@ -103,7 +103,7 @@ export default function Signup() {
             <NameBox>
               <Name>비밀번호</Name>
               <Box
-                type="string"
+                type="password"
                 value={password}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setPassword(e.target.value)
@@ -215,9 +215,6 @@ const Ht = styled.div`
   cursor: pointer;
 `;
 const ContentContainer = styled.div`
-  /* Frame 1707485872 */
-
-  /* 오토레이아웃 */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -299,7 +296,14 @@ const Box = styled.input<{ type: string; value: string }>`
   font-weight: 400;
   font-size: 16px;
   line-height: 19px;
-  curosr: pointer;
+  &:focus {
+    outline: none;
+    border: 1.5px solid #b6f500;
+  }
+
+  &:active {
+    outline: none;
+  }
 `;
 const LoginButton = styled.div`
   width: 363px;

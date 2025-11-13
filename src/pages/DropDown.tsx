@@ -109,7 +109,8 @@ export default function Dropdown({
 
 const Wrapper = styled.div<{ $variant: "default" | "custom" }>`
   position: relative;
-  width: ${({ $variant }) => ($variant === "custom" ? "111px" : "363px")};
+  /* width: ${({ $variant }) => ($variant === "custom" ? "111px" : "363px")}; */
+  flex: 1;
   gap: 20px;
   background: ${({ $variant }) =>
     $variant === "custom" ? "#ffffff" : "#ffffff"};
@@ -128,8 +129,9 @@ const SelectButton = styled.button<{
   isOpen: boolean;
   $variant: "default" | "custom";
 }>`
-  width: ${({ $variant }) => ($variant === "custom" ? "111px" : "363px")};
-  height: 42px;
+  /* width: ${({ $variant }) => ($variant === "custom" ? "111px" : "363px")}; */
+  width: 100%;
+  height: 40px;
   padding: 0 12px;
   display: flex;
   justify-content: space-between;
@@ -167,9 +169,11 @@ const Menu = styled.ul<{ $openUp: boolean }>`
   padding: 5px;
   margin: 0;
   list-style: none;
+  box-sizing: border-box;
   z-index: 1000;
   max-height: 240px;
   overflow-y: auto;
+  font-weight: 400;
 
   &::-webkit-scrollbar {
     width: 3px;

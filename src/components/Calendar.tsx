@@ -157,78 +157,21 @@ const getTileClass = ({ date, view }: { date: Date; view: string }) => {
   return "";
 };
 
-const dayMapping: { [key: number]: string } = {
-  0: "일",
-  1: "월",
-  2: "화",
-  3: "수",
-  4: "목",
-  5: "금",
-  6: "토",
-};
+// ⭐️ renderDot 함수를 제대로 정의하고 로직을 함수 내부에 포함시킵니다.
+function renderDot(
+  { date, view }: { date: Date; view: string },
+  isForModal?: boolean
+) {
+  if (view !== "month" || isForModal) return null;
 
-// function renderDot(date: Date, isForModal?: boolean) {
-//   if (isForModal) return null; // 모달이면 점 표시 안함
-
-//   // ✅ 단일 기간/요일 대신 통합 스케줄 배열을 불러옵니다.
-//   const savedSchedulesString = localStorage.getItem("drugSchedules");
-//   if (!savedSchedulesString) return null;
-
-//   let schedules;
-//   try {
-//     schedules = JSON.parse(savedSchedulesString);
-//   } catch (e) {
-//     console.error("Failed to parse drugSchedules:", e);
-//     return null;
-//   }
-
-//   // 현재 날짜의 요일을 한글로 가져옵니다. (0: 일, 1: 월, ..., 6: 토)
-//   const currentDayInKorean = dayMapping[date.getDay()];
-
-//   // ✅ 모든 스케줄을 순회하며 하나라도 조건을 만족하는지 확인합니다.
-//   const shouldShowDot = schedules.some(
-//     (schedule: { days: string; start: string; end: string }) => {
-//       // 1. 기간 조건 확인
-//       const startDate = new Date(schedule.start);
-//       const endDate = new Date(schedule.end);
-//       const isInPeriod = date >= startDate && date <= endDate;
-
-//       if (!isInPeriod) return false;
-
-//       // 2. 요일 조건 확인
-//       const scheduledDays = schedule.days.split(",").map((day) => day.trim());
-//       const isScheduledDay = scheduledDays.includes(currentDayInKorean);
-
-//       return isScheduledDay;
-//     }
-//   );
-
-//   // ✅ 하나라도 조건을 만족하면 점 표시
-//   if (shouldShowDot) {
-//     return (
-//       <div
-//         style={{
-//           width: "6px",
-//           height: "6px",
-//           borderRadius: "50%",
-//           backgroundColor: "#b6f500",
-//           marginTop: "20px",
-//         }}
-//       ></div>
-//     );
-//   }
-
-//   return null;
-// }
-
-function renderDot(date: Date, isForModal?: boolean) {
-  if (isForModal) return null; // 모달이면 점 표시 안함
-
-  // ✅ 단일 기간/요일 대신 통합 스케줄 배열을 불러옵니다.
   const savedSchedulesString = localStorage.getItem("drugSchedules");
   if (!savedSchedulesString) return null;
 
-  let schedules;
+  interface DotSchedule {
+    registrationDate: string; // YYYY-MM-DD 형식의 날짜 문자열
+  }
+
+  let schedules: DotSchedule[] = [];
   try {
     schedules = JSON.parse(savedSchedulesString);
   } catch (e) {
@@ -236,44 +179,16 @@ function renderDot(date: Date, isForModal?: boolean) {
     return null;
   }
 
-  // 현재 날짜의 요일을 한글로 가져옵니다. (0: 일, 1: 월, ..., 6: 토)
-  const currentDayInKorean = dayMapping[date.getDay()];
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const dateString = `${year}-${month}-${day}`;
 
-  // ✅ 모든 스케줄을 순회하며 하나라도 조건을 만족하는지 확인합니다.
-  const shouldShowDot = schedules.some(
-    (schedule: { days: string; start: string; end: string }) => {
-      // 1. 기간 조건 확인
-      const startDate = new Date(schedule.start);
-      const endDate = new Date(schedule.end);
-
-      // 날짜만 비교하기 위해 시간 정보 제거 (자정 기준)
-      const dateOnly = new Date(
-        date.getFullYear(),
-        date.getMonth(),
-        date.getDate()
-      );
-      const startOnly = new Date(
-        startDate.getFullYear(),
-        startDate.getMonth(),
-        startDate.getDate()
-      );
-      const endOnly = new Date(
-        endDate.getFullYear(),
-        endDate.getMonth(),
-        endDate.getDate()
-      );
-
-      const isInPeriod = dateOnly >= startOnly && dateOnly <= endOnly;
-
-      if (!isInPeriod) return false;
-
-      // 2. 요일 조건 확인
-      const scheduledDays = schedule.days.split(",").map((day) => day.trim());
-      const isScheduledDay = scheduledDays.includes(currentDayInKorean);
-
-      return isScheduledDay;
-    }
-  );
+  // ⭐️ 등록된 스케줄 중 현재 날짜와 일치하는 registrationDate가 있는지 확인합니다.
+  const shouldShowDot = schedules.some((schedule) => {
+    // registrationDate 속성이 존재하고 날짜 문자열이 일치하는지 확인
+    return schedule.registrationDate === dateString;
+  });
 
   // ✅ 하나라도 조건을 만족하면 점 표시
   if (shouldShowDot) {
@@ -296,16 +211,16 @@ function renderDot(date: Date, isForModal?: boolean) {
 export default function CalendarView({
   onChange,
   value,
-  selectRange = true,
+  selectRange = false, // 단일 날짜 선택으로 기본값 변경
   isForModal,
   activeStartDate,
   onActiveStartDateChange,
 }: CalendarProps) {
   const [internalValue, setInternalValue] = useState<Value>(value ?? null);
+  const [scheduleUpdateKey, setScheduleUpdateKey] = useState(0); // ⭐️ 스케줄 업데이트 키 추가
 
-  // const [activeStartDate, setActiveStartDate] = useState(
-  //   new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-  // );
+  // 컴포넌트 마운트 시/새로운 일정이 등록되었을 때 localStorage를 다시 읽도록 강제
+  // (Main.tsx에서 drugSchedules가 업데이트되면 CalendarView를 다시 렌더링하도록 처리 필요)
 
   const formatMonth = (d: Date) =>
     `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}`;
@@ -313,6 +228,8 @@ export default function CalendarView({
   const handleChange = (nextValue: Value) => {
     setInternalValue(nextValue);
     onChange?.(nextValue);
+    // ⭐️ 일정을 등록하고 돌아올 때 강제 업데이트
+    setScheduleUpdateKey((prev) => prev + 1);
   };
 
   const handleActiveStartDateChange = ({
@@ -327,7 +244,9 @@ export default function CalendarView({
   };
 
   return (
-    <CalendarWrapper>
+    <CalendarWrapper key={scheduleUpdateKey}>
+      {" "}
+      {/* ⭐️ key를 사용하여 강제 업데이트 유도 */}
       <CalendarStyles />
       <MonthNavigation>
         <NavArrow
@@ -362,7 +281,6 @@ export default function CalendarView({
           <Right />
         </NavArrow>
       </MonthNavigation>
-
       <Calendar
         selectRange={selectRange}
         onChange={handleChange}
@@ -370,7 +288,8 @@ export default function CalendarView({
         locale="ko-KR"
         calendarType="gregory"
         tileClassName={getTileClass}
-        tileContent={({ date }) => renderDot(date, isForModal)}
+        // ⭐️ renderDot 함수 호출 수정
+        tileContent={({ date, view }) => renderDot({ date, view }, isForModal)}
         formatDay={(_, date) => date.getDate().toString()}
         showNeighboringMonth={true}
         view="month"
