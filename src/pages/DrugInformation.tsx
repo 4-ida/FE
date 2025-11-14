@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import styled from "styled-components";
 import bb from "../assets/backbutton.svg";
 import { useNavigate } from "react-router-dom";
-import pill1 from "../assets/pill1.svg";
+import Nav from "../components/nav";
+
 import { useParams } from "react-router-dom";
 import axios from "axios";
 
@@ -25,7 +26,6 @@ interface DrugDetail {
 export default function DrugInformation() {
   const [isExpanded, setIsExpanded] = useState(false);
   const { drugId } = useParams<{ drugId: string }>(); // URL에서 id 가져오기
-  const numericId = Number(drugId); // string → number로 변환
   const navigate = useNavigate();
   const handleGoBack = () => {
     navigate(-1);
@@ -35,6 +35,7 @@ export default function DrugInformation() {
   };
   const [drug, setDrug] = useState<DrugDetail | null>(null);
 
+  // 약품 상세조회 연동
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     const Details = async (drugId: string) => {
@@ -43,7 +44,7 @@ export default function DrugInformation() {
           `${import.meta.env.VITE_API_URL}/api/v1/drug/details/${drugId}`,
           {
             headers: {
-              Authorization: `Bearer ${token}`, // ✅ 이거 빠졌을 가능성 큼
+              Authorization: `Bearer ${token}`,
             },
           }
         );
@@ -133,13 +134,13 @@ export default function DrugInformation() {
           <BigBox>
             <Title2>복용 시 주의사항</Title2>
             <LongBox expanded={isExpanded}>{drug.cautions}</LongBox>
-
             <ToggleBtn onClick={() => setIsExpanded(!isExpanded)}>
               {isExpanded ? "접기 " : "더보기 "}
             </ToggleBtn>
           </BigBox>
         </DownContainer>
       </Container>
+      <Nav></Nav>
     </Screen>
   );
 }
@@ -151,7 +152,6 @@ const Screen = styled.div`
   padding-bottom: 64px;
   overflow-y: auto; // 스크롤 활성화
   padding-bottom: 150px;
-  padding-bottom: 1000px;
 `;
 
 const Header = styled.div`
@@ -315,27 +315,7 @@ const Title2 = styled.div`
   align-self: stretch;
   flex-grow: 0;
 `;
-const LaterBox = styled.ul`
-  display: block; /* flex item으로 취급하지 않게 */
-  align-self: flex-start; /* 부모 높이에 맞춰 늘어나지 않게 */
-  align-items: initial; /* 내부 컨텐츠 높이 기준으로 계산 */
-  height: auto; /* fit-content 대신 auto로 자동 높이 계산 */
-  width: auto; /* 343px 고정 폭 제거 (필요 시 max-width만 유지) */
-  max-width: 100%;
-  background: #ffffff;
-  border: 1.5px solid #ebebeb;
-  border-radius: 5px;
-  padding: 10px;
-  font-family: "Pretendard";
-  font-style: normal;
-  font-weight: 400;
-  font-size: 16px;
-  line-height: 19px;
-  list-style-type: disc;
-  list-style-position: inside;
-  color: #333333;
-  margin: 0px;
-`;
+
 const SmallBox = styled.div`
   display: flex;
   width: 174px;

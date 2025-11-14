@@ -1,10 +1,9 @@
 import styled from "styled-components";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Nav from "../components/nav";
 import bb from "../assets/backbutton.svg";
 import { useNavigate } from "react-router-dom";
 import Dropdown from "../pages/DropDown";
-import axios from "axios";
 import axiosInstance from "../axiosInstance";
 
 export default function DrinkCaffaine() {
@@ -35,9 +34,6 @@ export default function DrinkCaffaine() {
   };
   const handleGoToMyPage = () => {
     navigate("/mypage");
-  };
-  const GotoWhatDrink = () => {
-    navigate("/whatdrink");
   };
 
   const first = {

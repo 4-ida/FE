@@ -1,15 +1,15 @@
 import styled from "styled-components";
-import React, { useState, useEffect } from "react";
-import { AiOutlinePlusCircle } from "react-icons/ai";
+import { useState, useEffect } from "react";
 import Nav from "../components/nav";
 import bb from "../assets/backbutton.svg";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useParams } from "react-router-dom";
 
 export default function WhatDrink() {
+  const { intakeId } = useParams<{ intakeId: number }>();
+  const intakeIdNum = Number(intakeId);
   const navigate = useNavigate();
-
-  const [drug, setDrug] = useState("");
   const handleGoBack = () => {
     navigate(-1);
   };
@@ -34,10 +34,11 @@ export default function WhatDrink() {
   }
 
   interface IntakeData {
-    caffeineTimer: TimerItem | null; // ✅ 배열 말고 그냥 한 개
-    alcoholTimer: TimerItem | null; // ✅ 배열 말고 그냥 한 개
+    caffeineTimer: TimerItem | null;
+    alcoholTimer: TimerItem | null;
   }
 
+  // 활성 타이머 리스트 조회 연동
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     const Details = async () => {
@@ -62,6 +63,46 @@ export default function WhatDrink() {
       }
     };
     Details();
+  }, []);
+
+  // 카페인 잔존 타이머 조회 연동
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+
+    const CaffaineTimer = async () => {
+      try {
+        const res = await axios.get(
+          `${
+            import.meta.env.VITE_API_URL
+          }/api/v1/intakespage/intakes/caffeine/${intakeIdNum}/timer`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (res.status === 200) {
+          console.log("카페인 타이머 조회 성공");
+          console.log(res.data);
+          setIntakeData(res.data);
+        }
+      } catch (err: any) {
+        console.error("카페인 타이머 조회 실패:", err);
+
+        const status = err.response?.status;
+
+        if (status === 400) {
+          console.error("요청 데이터가 잘못됨");
+        } else if (status === 404) {
+          console.error("섭취 기록을 찾을 수 없음");
+        } else {
+          console.error("카페인 타이머 조회 실패");
+        }
+      }
+    };
+
+    CaffaineTimer();
   }, []);
 
   return (
@@ -209,55 +250,6 @@ const AlcoholPlus = styled.button`
   text-align: center;
 
   color: #000000;
-`;
-const NoBox = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 0px;
-  gap: 8px;
-
-  width: 363px;
-  height: 144px;
-
-  /* Inside auto layout */
-  flex: none;
-  order: 2;
-  align-self: stretch;
-  flex-grow: 0;
-`;
-const Notext = styled.div`
-  width: 103px;
-  height: 21px;
-
-  font-family: "Pretendard";
-  font-style: normal;
-  font-weight: 500;
-  font-size: 18px;
-  line-height: 21px;
-  text-align: center;
-
-  color: #333333;
-
-  /* Inside auto layout */
-  flex: none;
-  order: 0;
-  flex-grow: 0;
-`;
-const No = styled.div`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  padding: 9px;
-  gap: 10px;
-  isolation: isolate;
-
-  width: 363px;
-  height: 115px;
-
-  background: #ffffff;
-  border: 1.5px solid #ebebeb;
-  border-radius: 5px;
 `;
 const TakenBox = styled.div`
   display: flex;
