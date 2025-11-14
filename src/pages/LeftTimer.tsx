@@ -3,6 +3,7 @@ import RingTimer from "../components/timer";
 import C from "../assets/LiaExchangeAltSolid.svg?react";
 import { useNavigate } from "react-router-dom";
 import Nav from "../components/nav";
+import Logo from "../assets/logo.svg?react";
 
 const Container = styled.div`
   display: flex;
@@ -24,6 +25,7 @@ const Header = styled.div`
   padding: 0 15px;
   box-sizing: border-box;
   justify-content: flex-end;
+  gap: 60px;
 `;
 
 const Ht = styled.div`
@@ -56,6 +58,7 @@ export default function LeftTimer() {
     <Container>
       <Nav />
       <Header>
+        <Logo />
         <Ht>마이페이지</Ht>
       </Header>
       <Title>

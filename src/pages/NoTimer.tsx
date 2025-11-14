@@ -6,6 +6,7 @@ import Nav from "../components/nav";
 import axiosInstance from "../axiosInstance";
 import axios from "axios";
 import { useEffect, useState, useCallback } from "react";
+import Logo from "../assets/logo.svg?react";
 
 const Container = styled.div`
   display: flex;
@@ -27,6 +28,7 @@ const Header = styled.div`
   padding: 0 15px;
   box-sizing: border-box;
   justify-content: flex-end;
+  gap: 60px;
 `;
 
 const Ht = styled.div`
@@ -187,6 +189,7 @@ export default function NoTimer() {
     <Container>
       <Nav />
       <Header>
+        <Logo />
         <Ht onClick={() => navigate("/mypage")}>마이페이지</Ht>
       </Header>
       {loading ? (
