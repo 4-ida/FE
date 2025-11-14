@@ -53,6 +53,7 @@ export default function Signup() {
         alert("로그인 성공");
         const accessToken = res.data.accessToken;
         localStorage.setItem("accessToken", accessToken);
+        // localStorage.setItem("userId", res.data.user.id);
 
         // 🔥 1. 프로필 정보를 조회하여 설정 여부를 확인합니다.
         try {

@@ -23,7 +23,7 @@ export default function Dropdown({
   onClick,
   className,
   variant = "default",
-  placeholder = "선택해 주세요",
+  placeholder = "",
 }: DropdownProps) {
   const [show, setShow] = useState(false);
   const [openUp, setOpenUp] = useState(false);
