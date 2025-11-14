@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import Dropdown from "./DropDown"; // Dropdown 컴포넌트 (제공된 파일)
 import { useEffect, useState } from "react";
 import axiosInstance from "../axiosInstance";
+import Logo from "../assets/logo.svg?react";
 
 const Container = styled.div`
   display: flex;
@@ -204,6 +205,12 @@ const Submit = styled.div`
   justify-content: center;
   align-items: center;
   cursor: pointer;
+`;
+
+const LoGo = styled(Logo)`
+  position: absolute;
+  top: 15px;
+  left: 139px;
 `;
 
 const AM_PM = ["오후", "오전"];
@@ -415,6 +422,7 @@ export default function DrugRegistration() {
 
   return (
     <Container>
+      <LoGo />
       <Header>
         <Back src={bb} alt="뒤로 가기" onClick={handleGoBack} />
         <Ht onClick={handleGoToMyPage}>마이페이지</Ht>

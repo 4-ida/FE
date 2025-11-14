@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import bb from "../assets/backbutton.svg";
 import Modal from "./modal/mymodal";
 import axiosInstance from "../axiosInstance";
+import Logo from "../assets/logo.svg?react";
 
 export default function Mypage() {
   const caffeineOptions = ["약함", "보통", "강함"];
@@ -202,6 +203,7 @@ export default function Mypage() {
 
   return (
     <Screen>
+      <LoGo />
       {showModal && <Modal isOpen={showModal} onClose={handleCloseModal} />}
       <Header>
         <Back src={bb} alt="뒤로 가기" onClick={handleGoBack} />
@@ -373,6 +375,13 @@ const NameBox = styled.div`
   align-self: stretch;
   flex-grow: 0;
 `;
+
+const LoGo = styled(Logo)`
+  position: absolute;
+  top: 15px;
+  left: 139px;
+`;
+
 const Name = styled.div`
   width: 363px;
   font-family: "Pretendard";

@@ -6,6 +6,7 @@ import Nav from "../components/nav";
 
 import { useParams } from "react-router-dom";
 import axios from "axios";
+import Logo from "../assets/logo.svg?react";
 
 interface DrugDetail {
   id: number;
@@ -63,6 +64,7 @@ export default function DrugInformation() {
   if (!drug) return <div>Loading...</div>;
   return (
     <Screen>
+      <LoGo />
       <Header>
         <Back src={bb} alt="뒤로 가기" onClick={handleGoBack} />
         <Ht onClick={handleGoToMyPage}>마이페이지</Ht>
@@ -144,6 +146,12 @@ export default function DrugInformation() {
     </Screen>
   );
 }
+const LoGo = styled(Logo)`
+  position: absolute;
+  top: 15px;
+  left: 139px;
+`;
+
 const Screen = styled.div`
   position: relative;
   width: 393px;
@@ -288,6 +296,7 @@ const Box = styled.div`
 
   color: #333333;
 `;
+
 const BigBox = styled.div`
   display: flex;
   flex-direction: column;
@@ -295,8 +304,10 @@ const BigBox = styled.div`
   padding: 0px;
   gap: 8px;
   height: auto; /* fit-content 대신 auto로 자동 높이 계산 */
-  width: auto;
+  width: 363px;
+  position: relative;
 `;
+
 const Title2 = styled.div`
   width: 363px;
   height: 21px;
@@ -316,6 +327,28 @@ const Title2 = styled.div`
   flex-grow: 0;
 `;
 
+const LaterBox = styled.ul`
+  display: block; /* flex item으로 취급하지 않게 */
+  align-self: flex-start; /* 부모 높이에 맞춰 늘어나지 않게 */
+  align-items: initial; /* 내부 컨텐츠 높이 기준으로 계산 */
+  height: auto; /* fit-content 대신 auto로 자동 높이 계산 */
+  width: auto; /* 343px 고정 폭 제거 (필요 시 max-width만 유지) */
+  max-width: 100%;
+  background: #ffffff;
+  border: 1.5px solid #ebebeb;
+  border-radius: 5px;
+  padding: 10px;
+  font-family: "Pretendard";
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 19px;
+  list-style-type: disc;
+  list-style-position: inside;
+  color: #333333;
+  margin: 0px;
+`;
+
 const SmallBox = styled.div`
   display: flex;
   width: 174px;
@@ -326,6 +359,7 @@ const SmallBox = styled.div`
   order: 0;
   flex-grow: 0;
 `;
+
 const Title3 = styled.div`
   /* 전문 / 일반 */
 
@@ -343,6 +377,7 @@ const Title3 = styled.div`
 
   color: #333333;
 `;
+
 const ShortBox = styled.ul`
   display: flex;
   flex-direction: row;
@@ -361,46 +396,55 @@ const ShortBox = styled.ul`
   border: 1.5px solid #ebebeb;
   border-radius: 5px;
 `;
+
 const Line = styled.div`
   display: flex;
   flex-direction: row;
   gap: 10px;
+  width: 363px;
+  box-sizing: border-box;
+  justify-content: space-between;
 `;
 
 const LongBox = styled.div<{ expanded: boolean }>`
-  display: block; /* flex item으로 취급하지 않게 */
-  align-self: flex-start; /* 부모 높이에 맞춰 늘어나지 않게 */
-  align-items: initial; /* 내부 컨텐츠 높이 기준으로 계산 */
-  height: auto; /* fit-content 대신 auto로 자동 높이 계산 */
-  width: 343px;
-  background: #ffffff;
-  border: 1.5px solid #ebebeb;
-  border-radius: 5px;
-  padding: 10px;
-  background: #ffffff;
-  border: 1.5px solid #ebebeb;
-  border-radius: 5px;
-  padding: 10px;
+  width: 100%;
   font-family: "Pretendard";
   font-size: 16px;
   line-height: 20px;
   color: #333333;
-  white-space: pre-line;
+  background: #ffffff;
+  border: 1.5px solid #ebebeb;
+  border-radius: 5px;
+  padding: 10px;
+  box-sizing: border-box;
 
-  /* 🔥 펼치기/접기 핵심 */
+  /* 기본 상태: 3줄만 보여주기 */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* -webkit-line-clamp: ${({ expanded }) => (expanded ? "none" : 3)};
+  max-height: ${({ expanded }) =>
+    expanded ? "none" : `calc(20px * 3 + 20px)`}; */
+  /* line-height*3 + padding 보정 (10px 위 + 10px 아래) */
+
+  /* 펼치기 상태 */
   ${({ expanded }) =>
     expanded
       ? `
-    overflow: visible;
     display: block;
+    overflow: visible;
+    -webkit-line-clamp: unset;
+    max-height: none;
+    padding-bottom: 10px; /* 펼쳤을 때는 일반 패딩으로 복구 */
   `
       : `
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;   /* 3줄만 보여줌 */
-    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    /* 3줄 (20px*3=60px) + 상단 패딩 (10px)까지만 허용하여 잘린 텍스트를 숨김 */
+    max-height: 70px; 
   `}
 `;
+
 const ToggleBtn = styled.div`
   font-size: 14px;
   color: #7fab00;
