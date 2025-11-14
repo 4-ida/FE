@@ -44,6 +44,26 @@ export default function DrinkAlcohol() {
   const [caffaine, setCaffaine] = useState("");
   const [minute, setMinute] = useState("");
   const [cup, setCup] = useState("");
+  const first = {
+    drink: "",
+    caffaine: "",
+    two: "",
+    cup: "",
+    time: "",
+    minute: "",
+    percent: "",
+  };
+  const handleReset = () => {
+    setDrink(first.drink);
+    setTime(first.time);
+    setCaffaine(first.caffaine);
+    setCup(first.cup);
+    setMinute(first.minute);
+    setTwo(first.two);
+    setPercent(first.percent);
+  };
+
+  // 알코올 섭취 페이지 연동
 
   return (
     <Screen>
