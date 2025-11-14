@@ -1,6 +1,5 @@
 import styled, { keyframes } from "styled-components";
 import { useState, useEffect } from "react";
-import PlusCircle from "../../assets/pluscircle.svg?react";
 import Dropdown from "../DropDown";
 
 // --- Keyframes (Copied from original) ---
@@ -64,73 +63,12 @@ const SectionTitle = styled.div`
   font-weight: 500;
 `;
 
-// --- Day Selection Styles ---
-const DayContainer = styled.div`
-  display: flex;
-  gap: 8px;
-  margin-bottom: 24px;
-`;
-
-const DayCircle = styled.button<{ $selected: boolean }>`
-  width: 45px;
-  height: 45px;
-  border-radius: 50%;
-  border: 1px solid ${({ $selected }) => ($selected ? "#b6f500" : "#ddd")};
-  background-color: ${({ $selected }) => ($selected ? "#b6f50033" : "white")};
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-family: "Pretendard", sans-serif;
-  font-size: 16px;
-  font-weight: 500;
-  color: #333;
-  cursor: pointer;
-  box-shadow: ${({ $selected }) => ($selected ? "0 0 0 3px #b6f500" : "none")};
-  transition: all 0.2s ease;
-`;
-
 // --- Time Selection Styles ---
 const TimeContainer = styled.div`
   width: 100%;
   display: flex;
   align-items: center;
   gap: 8px;
-`;
-
-const TimeDropdown = styled.select`
-  flex-grow: 1;
-  height: 45px;
-  padding: 0 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-family: "Pretendard", sans-serif;
-  font-size: 16px;
-  font-weight: 400;
-  appearance: none;
-  background: white
-    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="%23333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>')
-    no-repeat right 10px center;
-  background-size: 12px;
-`;
-
-const MinuteDropdown = styled(TimeDropdown)`
-  flex-grow: 0;
-  width: 80px;
-`;
-
-const AmPmDropdown = styled(TimeDropdown)`
-  flex-grow: 0;
-  width: 80px;
-`;
-
-const AddTimeButton = styled(PlusCircle)`
-  background-color: #fff;
-  border: none;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  flex-shrink: 0;
 `;
 
 // --- Footer and Finish Button ---
@@ -218,10 +156,6 @@ export default function TimeSelectionModal({
     const newTimes = [...times];
     newTimes[index][field] = value;
     setTimes(newTimes);
-  };
-
-  const handleAddTime = () => {
-    setTimes([...times, { amPm: "오후", hour: "6시", minute: "00분" }]);
   };
 
   return (

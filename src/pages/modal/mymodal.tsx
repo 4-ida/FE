@@ -1,25 +1,5 @@
-import styled, { keyframes } from "styled-components";
-import Calendar from "../../components/Calendar"; // 이 경로는 프로젝트 구조에 맞게 유지됩니다.
-import { useState, useEffect } from "react";
-import Reset from "../../assets/reset.svg?react"; // 이 경로는 프로젝트 구조에 맞게 유지됩니다.
-
-const slideIn = keyframes`
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
-`;
-
-const slideOut = keyframes`
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(100%);
-  }
-`;
+import styled from "styled-components";
+import { useState } from "react";
 
 interface DateModalProps {
   isOpen: boolean;
