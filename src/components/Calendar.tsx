@@ -169,46 +169,42 @@ const getTileClass = ({ date, view }: { date: Date; view: string }) => {
 };
 
 // ⭐️ renderDot 함수를 제대로 정의하고 로직을 함수 내부에 포함시킵니다.
+// CalendarView.js 파일 내 renderDot 함수
 function renderDot(
   { date, view }: { date: Date; view: string },
   isForModal?: boolean,
-  schedulesByDate: SchedulesByDate = {}
+  schedulesByDate: SchedulesByDate = {} // ⭐️ props로 받은 데이터 사용
 ) {
+  // 모달이 아니거나, 월 뷰일 때만 실행
   if (view !== "month" || isForModal) return null;
 
-  const savedSchedulesString = localStorage.getItem("drugSchedules");
-  if (!savedSchedulesString) return null;
-
-  // interface DotSchedule {
-  //   registrationDate: string; // YYYY-MM-DD 형식의 날짜 문자열
-  // }
-
-  // let schedules: DotSchedule[] = [];
-  // try {
-  //   schedules = JSON.parse(savedSchedulesString);
-  // } catch (e) {
-  //   console.error("Failed to parse drugSchedules:", e);
-  //   return null;
-  // }
+  // ⚠️ 불필요한 localStorage 로직 제거
+  // const savedSchedulesString = localStorage.getItem("drugSchedules");
+  // if (!savedSchedulesString) return null;
+  // ... (이후 JSON.parse 로직도 제거)
 
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
-  const dateString = `${year}-${month}-${day}`;
+  const dateString = `${year}-${month}-${day}`; // 예: "2025-11-01"
 
+  // ⭐️ 해당 날짜에 일정이 있는지 확인 (API 응답 데이터 활용)
   const schedulesForDate = schedulesByDate[dateString];
   const shouldShowDot = schedulesForDate && schedulesForDate.length > 0;
 
-  // ✅ 하나라도 조건을 만족하면 점 표시
+  // 하나라도 일정이 있으면 점 표시
   if (shouldShowDot) {
     return (
+      // ⚠️ CSS 위치 수정: 점이 날짜 아래에 위치하도록 Margin-Top 조정
       <div
         style={{
           width: "6px",
           height: "6px",
           borderRadius: "50%",
           backgroundColor: "#b6f500",
-          marginTop: "20px",
+          // 캘린더 타일 CSS에 맞게 margin-top을 35px 정도로 조정
+          marginTop: "35px",
+          position: "absolute", // 날짜와 겹치지 않게 absolute로 변경
         }}
       ></div>
     );

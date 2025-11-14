@@ -1,34 +1,74 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
-// totalSeconds prop을 사용하고 기본값을 300초(5분)로 설정
-const RingTimer = ({ totalSeconds = 300 }) => {
-  const [remaining, setRemaining] = useState(totalSeconds);
+interface RingTimerProps {
+  totalSeconds?: number;
+  onComplete?: () => void;
+}
 
-  // === 크기 조정 (333x333) ===
+// const RingTimer = ({ totalSeconds = 300 }) => {
+//   const [remaining, setRemaining] = useState(totalSeconds);
+const RingTimer = ({ totalSeconds = 300, onComplete }: RingTimerProps) => {
+  const [remaining, setRemaining] = useState<number>(totalSeconds);
+  // const intervalRef = useRef<number | null>(null);
+
   const containerSize = 333;
   const radius = 150;
   const stroke = 18;
-
-  // SVG 뷰포트 내에서 스트로크 두께를 고려한 실제 원의 반지름
   const normalizedRadius = radius - stroke / 2;
-  // 원의 둘레: 진행률 계산에 사용
   const circumference = normalizedRadius * 2 * Math.PI;
 
-  useEffect(() => {
-    if (remaining === 0) return;
+  // useEffect(() => {
+  //   setRemaining(totalSeconds);
+  // }, [totalSeconds]);
 
-    const timer = setInterval(() => {
-      setRemaining((prev) => (prev > 0 ? prev - 1 : 0));
+  // useEffect(() => {
+  //   if (remaining === 0) return;
+
+  //   const timer = setInterval(() => {
+  //     setRemaining((prev) => (prev > 0 ? prev - 1 : 0));
+  //   }, 1000);
+
+  //   return () => clearInterval(timer);
+  // }, [remaining]);
+  useEffect(() => {
+    setRemaining(totalSeconds);
+  }, [totalSeconds]);
+
+  /** 1초마다 줄어드는 타이머 */
+  useEffect(() => {
+    if (remaining <= 0) {
+      onComplete?.();
+      return;
+    }
+
+    const intervalId = setInterval(() => {
+      setRemaining((prev) => Math.max(prev - 1, 0));
     }, 1000);
 
-    return () => clearInterval(timer);
-  }, [remaining]);
+    return () => clearInterval(intervalId);
+  }, [remaining, onComplete]);
 
-  // 진행률 (0에서 1 사이): 남은 시간 / 전체 시간
+  // interval이 아직 없으면 생성
+  // if (intervalRef.current == null) {
+  //   intervalRef.current = window.setInterval(() => {
+  //     setRemaining((prev) => {
+  //       if (prev <= 1) {
+  //         // 마지막 업데이트 시 interval 정리
+  //         if (intervalRef.current) {
+  //           window.clearInterval(intervalRef.current);
+  //           intervalRef.current = null;
+  //         }
+  //         return 0;
+  //       }
+  //       return prev - 1;
+  //     });
+  //   }, 1000);
+  // }
+
   const progressRatio = remaining / totalSeconds;
 
-  // strokeDashoffset은 둘레(circumference) * '남은 시간 비율'로 계산합니다.
-  const strokeDashoffset = circumference * progressRatio;
+  // const strokeDashoffset = circumference * progressRatio;
+  const strokeDashoffset = circumference * (1 - progressRatio);
 
   const formatTime = (seconds: number) => {
     const h = String(Math.floor(seconds / 3600)).padStart(2, "0");
@@ -38,20 +78,34 @@ const RingTimer = ({ totalSeconds = 300 }) => {
   };
 
   // 남은 시간에 따라 표시 단위를 계산하는 함수 (0초일 때 "Time's up!")
-  const getDisplayUnit = (seconds: number, initialSeconds: number) => {
-    if (seconds <= 0) {
-      return "Time's up!";
-    }
-    // 초기 설정 시간을 가장 적절한 단위(시간/분/초)로 표시
-    const initialMinutes = initialSeconds / 60;
-    const initialHours = initialSeconds / 3600;
+  // const getDisplayUnit = (seconds: number, initialSeconds: number) => {
+  //   if (seconds <= 0) {
+  //     return "Time's up!";
+  //   }
+  //   // 초기 설정 시간을 가장 적절한 단위(시간/분/초)로 표시
+  //   const initialMinutes = initialSeconds / 60;
+  //   const initialHours = initialSeconds / 3600;
 
-    if (initialHours >= 1 && initialSeconds % 3600 === 0) {
-      const h = Math.round(initialHours);
+  //   if (initialHours >= 1 && initialSeconds % 3600 === 0) {
+  //     const h = Math.round(initialHours);
+  //     return `${h} hour${h > 1 ? "s" : ""}`;
+  //   }
+  //   if (initialMinutes >= 1 && initialSeconds % 60 === 0) {
+  //     const m = Math.round(initialMinutes);
+  //     return `${m} minute${m > 1 ? "s" : ""}`;
+  //   }
+  //   return `${initialSeconds} seconds`;
+  // };
+  const getDisplayUnit = (initialSeconds: number) => {
+    const minutes = initialSeconds / 60;
+    const hours = initialSeconds / 3600;
+
+    if (hours >= 1 && initialSeconds % 3600 === 0) {
+      const h = Math.round(hours);
       return `${h} hour${h > 1 ? "s" : ""}`;
     }
-    if (initialMinutes >= 1 && initialSeconds % 60 === 0) {
-      const m = Math.round(initialMinutes);
+    if (minutes >= 1 && initialSeconds % 60 === 0) {
+      const m = Math.round(minutes);
       return `${m} minute${m > 1 ? "s" : ""}`;
     }
     return `${initialSeconds} seconds`;
@@ -104,7 +158,7 @@ const RingTimer = ({ totalSeconds = 300 }) => {
         style={{
           position: "absolute",
           textAlign: "center",
-          fontFamily: "monospace",
+          fontFamily: "Pretendard",
         }}
       >
         <div style={{ fontSize: "48px", fontWeight: "500" }}>
@@ -112,7 +166,7 @@ const RingTimer = ({ totalSeconds = 300 }) => {
         </div>
         <div style={{ fontSize: "24px", color: "#888" }}>
           {/* totalSeconds를 표시 */}
-          {getDisplayUnit(remaining, totalSeconds)}
+          {getDisplayUnit(totalSeconds)}
         </div>
       </div>
     </div>

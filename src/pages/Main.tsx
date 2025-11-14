@@ -105,8 +105,9 @@ export interface DrugSchedule {
   memo: string;
   time: string;
   registrationDate: string;
+  drugId: number;
   dailyStatus: "SCHEDULED" | "CANCELED";
-  completionStatus: "NONE" | "COMPLETED" | "MISSED";
+  completionStatus: "NONE" | "TAKEN" | "MISSED";
 }
 
 export interface DrugScheduleBase {
@@ -123,7 +124,7 @@ export interface TodayPillItem {
   time: string;
   pillName: string;
   dailyStatus: "SCHEDULED" | "CANCELED";
-  completionStatus: "NONE" | "COMPLETED" | "MISSED";
+  completionStatus: "NONE" | "TAKEN" | "MISSED";
   registrationDate: string;
 }
 
@@ -142,9 +143,14 @@ interface ScheduleDetail {
   };
 }
 
+//복용률
+interface ProgressData {
+  userName: string;
+  progressPercent: number;
+}
+
 export default function Main() {
   const navigate = useNavigate();
-
   const location = useLocation();
   const initDate = location.state?.selectedDate
     ? new Date(location.state.selectedDate)
@@ -152,11 +158,6 @@ export default function Main() {
 
   const [selectedDate, setSelectedDate] = useState<Date | null>(initDate);
 
-  // const [selectedDate, setSelectedDate] = useState<Date | null>(
-  //   location.state?.pill
-  //     ? new Date(location.state.pill.registrationDate)
-  //     : new Date()
-  // );
   const [activeStartDate, setActiveStartDate] = useState(
     new Date(new Date().getFullYear(), new Date().getMonth(), 1)
   );
@@ -166,12 +167,134 @@ export default function Main() {
   const [drugSchedules, setDrugSchedules] = useState<ScheduleDetail[]>([]);
   const [loadingTodayPills, setLoadingTodayPills] = useState(false);
 
+  const [progressData, setProgressData] = useState<ProgressData>({
+    userName: "홍길동", // 초기값은 '홍길동' 또는 빈 문자열
+    progressPercent: 0,
+  });
+
+  const fetchProgress = async (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+
+    try {
+      const response = await axiosInstance.get(`/api/v1/dashboard/progress`, {
+        params: { year, month },
+      });
+
+      const data = response.data;
+
+      setProgressData({
+        userName: data.userName || "사용자",
+        progressPercent: data.progressPercent || 0,
+      });
+    } catch (error) {
+      console.error("❌ 복용률 조회 실패:", error);
+      // 실패 시 기본값 유지
+    }
+  };
+
+  useEffect(() => {
+    if (activeStartDate) {
+      const year = activeStartDate.getFullYear();
+      const month = activeStartDate.getMonth() + 1;
+      fetchMonthSchedules(year, month);
+
+      // ⭐️ 복용률 조회 추가
+      fetchProgress(activeStartDate);
+    }
+  }, [activeStartDate]);
+
   const formatDateForUrl = (date: Date | null): string => {
     if (!date) return "";
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
+  };
+
+  // status 전달
+  // Main.js 파일 내부에 추가
+
+  // 1. 복약 예정/취소 상태 변경 핸들러 (dailyStatus/plan 변경)
+  const handleStatusChange = async (
+    id: string,
+    newDailyStatus: "SCHEDULED" | "CANCELED"
+  ) => {
+    const scheduleId = Number(id);
+    if (isNaN(scheduleId)) return;
+
+    // 현재 상태에서 해당 일정 찾기
+    const scheduleToUpdate = drugSchedules.find(
+      (s) => s.scheduleId === scheduleId
+    );
+
+    if (!scheduleToUpdate) {
+      console.error("업데이트할 일정을 찾을 수 없습니다.");
+      return;
+    }
+
+    try {
+      await axiosInstance.put(`/api/v1/main/calendar/schedules/${scheduleId}`, {
+        drugId: scheduleToUpdate.drugId,
+        name: scheduleToUpdate.name,
+        dose: scheduleToUpdate.dose,
+        date: scheduleToUpdate.date,
+        time: scheduleToUpdate.time,
+        memo: scheduleToUpdate.memo,
+        plan: newDailyStatus, // ⭐️ 변경된 값 (SCHEDULED -> CANCELED)
+        status:
+          newDailyStatus === "CANCELED" ? "NONE" : scheduleToUpdate.status, // 취소 시 status도 NONE으로 변경
+        alarm: scheduleToUpdate.alarm,
+      });
+
+      // 상태 변경 후 목록 재조회 (UI 갱신)
+      if (selectedDate) {
+        fetchTodayPills(selectedDate);
+      }
+    } catch (error) {
+      console.error("❌ DailyStatus 변경 실패:", error);
+      alert("일정 상태 변경에 실패했습니다.");
+    }
+  };
+
+  // 2. 복약 완료/미섭취 상태 변경 핸들러 (completionStatus/status 변경)
+  const handleCompletionChange = async (
+    id: string,
+    newCompletionStatus: "TAKEN" | "MISSED" | "NONE"
+  ) => {
+    const scheduleId = Number(id);
+    if (isNaN(scheduleId)) return;
+
+    const scheduleToUpdate = drugSchedules.find(
+      (s) => s.scheduleId === scheduleId
+    );
+
+    if (!scheduleToUpdate) {
+      console.error("업데이트할 일정을 찾을 수 없습니다.");
+      return;
+    }
+
+    try {
+      await axiosInstance.put(`/api/v1/main/calendar/schedules/${scheduleId}`, {
+        drugId: scheduleToUpdate.drugId,
+        name: scheduleToUpdate.name,
+        dose: scheduleToUpdate.dose,
+        date: scheduleToUpdate.date,
+        time: scheduleToUpdate.time,
+        memo: scheduleToUpdate.memo,
+        plan: scheduleToUpdate.plan,
+        status: newCompletionStatus, // ⭐️ 변경된 값 (TAKEN, MISSED, NONE)
+        alarm: scheduleToUpdate.alarm,
+      });
+
+      // 상태 변경 후 목록 재조회 (UI 갱신)
+      if (selectedDate) {
+        fetchTodayPills(selectedDate);
+      }
+    } catch (error) {
+      console.error("❌ CompletionStatus 변경 실패:", error);
+      alert("복용 완료/미섭취 상태 변경에 실패했습니다.");
+    }
   };
 
   // 일정 상세 조회 (일별)
@@ -216,9 +339,10 @@ export default function Main() {
       const responseData = response.data?.data;
       let schedulesData: SchedulesByDate = {};
 
-      if (responseData) {
+      if (responseData && responseData.schedulesByDate) {
         const schedulesField = responseData.schedulesByDate;
 
+        // ⭐️ 핵심 수정: 응답이 문자열(JSON)인지 확인하고 파싱
         if (typeof schedulesField === "string") {
           try {
             schedulesData = JSON.parse(schedulesField);
@@ -243,57 +367,23 @@ export default function Main() {
     }
   };
 
-  // ⭐️ 수정/삭제 후 메인 돌아왔을 때 TodayPill 다시 불러오기
-  // useEffect(() => {
-  //   if (location.state?.scheduleUpdated && selectedDate) {
-  //     fetchTodayPills(selectedDate);
-  //     // 한번 실행되면 초기화 (뒤로가기 시 무한 호출 방지)
-  //     navigate(".", { replace: true, state: {} });
-  //   }
-  // }, [location.state, selectedDate, navigate]);
-
-  // // ⭐️ [useEffect] 일별 상세 일정 (selectedDate 변경 시)
-  // useEffect(() => {
-  //   if (selectedDate) {
-  //     fetchTodayPills(selectedDate);
-  //   }
-  // }, [selectedDate]);
-
-  // useEffect(() => {
-  //   if (location.state?.scheduleUpdated) {
-  //     const updated: ScheduleDetail = location.state.updatedSchedule;
-  //     if (updated) {
-  //       setDrugSchedules((prev) => {
-  //         const filtered = prev.filter(
-  //           (s) => s.scheduleId !== updated.scheduleId
-  //         );
-  //         return [...filtered, updated].sort((a, b) =>
-  //           a.time.localeCompare(b.time)
-  //         );
-  //       });
-  //     }
-  //     // flag 초기화
-  //     navigate(".", { replace: true, state: {} });
-  //   }
-  // }, [location.state, navigate]);
-
   useEffect(() => {
-    if (location.state?.scheduleUpdated) {
-      const updated: ScheduleDetail = location.state.updatedSchedule; // ⭐️ updatedSchedule은 어디에서 왔나요?
-      if (updated) {
-        setDrugSchedules((prev) => {
-          const filtered = prev.filter(
-            (s) => s.scheduleId !== updated.scheduleId
-          );
-          return [...filtered, updated].sort((a, b) =>
-            a.time.localeCompare(b.time)
-          );
-        });
-      }
-      // flag 초기화
-      navigate(".", { replace: true, state: {} });
+    if (location.state?.scheduleUpdated && selectedDate) {
+      // 1. 전체 일정 다시 로드
+      fetchTodayPills(selectedDate);
+
+      // 2. 캘린더 점을 위해 월별 일정도 다시 로드 (필요하다면)
+      const year = activeStartDate.getFullYear();
+      const month = activeStartDate.getMonth() + 1;
+      fetchMonthSchedules(year, month);
+
+      // 3. flag 초기화 (무한 호출 방지)
+      navigate(location.pathname, {
+        replace: true,
+        state: { selectedDate: formatDateForUrl(selectedDate) },
+      });
     }
-  }, [location.state, navigate]);
+  }, [location.state, selectedDate, navigate, activeStartDate]);
 
   // ⭐️ [useEffect] 월별 캘린더 일정 (activeStartDate 변경 시)
   useEffect(() => {
@@ -321,7 +411,7 @@ export default function Main() {
       dailyStatus: schedule.plan, // 'SCHEDULED' | 'CANCELED'
       completionStatus:
         schedule.status === "TAKEN"
-          ? "COMPLETED"
+          ? "TAKEN"
           : schedule.status === "MISSED"
           ? "MISSED"
           : "NONE",
@@ -389,17 +479,18 @@ export default function Main() {
           pills={todayPill}
           onDelete={onDeletePill}
           onModify={() => {}} // ⚠️ API 연동 필요
-          onStatusChange={() => {}} // ⚠️ API 연동 필요
-          onCompletionChange={() => {}} // ⚠️ API 연동 필요
+          onStatusChange={handleStatusChange} // ⭐️ 함수 연결
+          onCompletionChange={handleCompletionChange}
         />
       )}
 
       <Footer>
-        홍길동 님의 {formatMonth(activeStartDate).split(".")[1]}월 복용률 :{" "}
-        {sampleProgress}%
+        {progressData.userName} 님의{" "}
+        {formatMonth(activeStartDate).split(".")[1]}월 복용률 :{" "}
+        {progressData.progressPercent}%
         <ProgressBarWrapper>
-          <ProgressBar $progress={sampleProgress} />
-          <ProgressHandle $progress={sampleProgress} />
+          <ProgressBar $progress={progressData.progressPercent} />
+          <ProgressHandle $progress={progressData.progressPercent} />
         </ProgressBarWrapper>
       </Footer>
     </Container>
