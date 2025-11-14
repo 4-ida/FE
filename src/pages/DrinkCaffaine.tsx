@@ -39,6 +39,7 @@ export default function DrinkCaffaine() {
   const GotoWhatDrink = () => {
     navigate("/whatdrink");
   };
+
   const first = {
     beverageName: "",
     caffeineMg: "",
@@ -48,6 +49,7 @@ export default function DrinkCaffaine() {
     minute: "",
     morning: "",
   };
+
   const handleReset = () => {
     setBeverageName(first.beverageName);
     setHour(first.time);
