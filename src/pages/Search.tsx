@@ -156,35 +156,34 @@ export default function Search() {
   };
 
   // 북마크 목록 조회
-  useEffect(() => {
-    const getBookmarkList = async () => {
-      try {
-        const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/v1/drug/bookmarks`,
-          {
-            params: {
-              page: 0,
-              size: 100,
-              sort: "recent",
-            },
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
 
-        console.log(" 북마크 목록 조회 성공", res.data);
-
-        if (Array.isArray(res.data.items)) {
-          setBookmarkDrugs(res.data.items); // 🔧 북마크 데이터를 별도의 상태에 저장
+  const getBookmarkList = async () => {
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/v1/drug/bookmarks`,
+        {
+          params: {
+            page: 0,
+            size: 100,
+            sort: "recent",
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      } catch (err) {
-        console.error("북마크 목록 조회 실패", err);
-      }
-    };
+      );
 
-    getBookmarkList();
-  }, [showBookmarksOnly]);
+      console.log(" 북마크 목록 조회 성공", res.data);
+
+      if (Array.isArray(res.data.items)) {
+        setBookmarkDrugs(res.data.items); // 🔧 북마크 데이터를 별도의 상태에 저장
+      }
+    } catch (err) {
+      console.error("북마크 목록 조회 실패", err);
+    }
+  };
+
+  getBookmarkList();
 
   const updateBookmarkUI = (drugId: string, value: boolean) => {
     // 검색 리스트 UI 업데이트

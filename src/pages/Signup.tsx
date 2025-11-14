@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import bb from "../assets/backbutton.svg";
@@ -20,6 +20,8 @@ export default function Signup() {
 
   const [emailValid, setEmailValid] = useState<null | boolean>(null);
   const [passwordMatch, setPasswordMatch] = useState<null | boolean>(null);
+
+  // 이메일 중복확인 연동
   useEffect(() => {
     const checkEmail = async () => {
       if (email && email === emailcheck) {
@@ -58,6 +60,7 @@ export default function Signup() {
     checkEmail();
   }, [email, emailcheck]);
 
+  // 회원가입 생성
   const handleSignup = async () => {
     if (!name || !email || !password || !passwordcheck) {
       alert("모든 항목을 입력해주세요.");
