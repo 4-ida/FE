@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 // totalSeconds prop을 사용하고 기본값을 300초(5분)로 설정
 const RingTimer = ({ totalSeconds = 300 }) => {
