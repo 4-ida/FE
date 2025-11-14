@@ -3,6 +3,7 @@ import Dropdown from "../pages/DropDown";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import bb from "../assets/backbutton.svg";
+import Modal from "./modal/mymodal";
 import axiosInstance from "../axiosInstance";
 
 export default function Mypage() {
@@ -12,6 +13,12 @@ export default function Mypage() {
   const [email, setEmail] = useState("");
   const [caffeineSensitivity, setCaffeineSensitivity] = useState("");
   const [drinkingPattern, setDrinkingPattern] = useState("");
+
+  // modal
+  const [showModal, setShowModal] = useState(false);
+  const [caffeineError, setCaffeineError] = useState(false);
+  const [alcoholError, setAlcoholError] = useState(false);
+
   const navigate = useNavigate();
   const handleGoBack = () => {
     navigate(-1);
@@ -44,39 +51,6 @@ export default function Mypage() {
       setName(res.data.name);
       setEmail(res.data.email);
       // 필요한 경우 caffeineSensitivity, drinkingPattern 도 여기서 설정
-    } catch (err: any) {
-      console.error("조회 실패:", err.response);
-    }
-  };
-
-  useEffect(() => {
-    fetchMyPage();
-    handleUpdateProfile();
-  }, []);
-
-  // 프로필 수정 API
-  const handleUpdateProfile = async () => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) {
-      console.error("❌ 토큰 없음 → 로그인 필요");
-      return;
-    }
-
-    try {
-      const res = await axiosInstance.put(`/api/v1/users/profile/me`, {
-        name,
-        email,
-        caffeineSensitivity: sensitivityMap[caffeineSensitivity],
-        alcoholPattern: alcoholMap[drinkingPattern],
-      });
-
-      console.log("🟡 보낼 데이터:", {
-        name,
-        email,
-        caffeineSensitivity: sensitivityMap[caffeineSensitivity],
-        alcoholPattern: alcoholMap[drinkingPattern],
-      });
-
       const reverseSensitivityMap: Record<string, string> = {
         WEAK: "약함",
         NORMAL: "보통",
@@ -87,7 +61,6 @@ export default function Mypage() {
         SOMETIMES: "가끔",
         OFTEN: "자주",
       };
-
       if (res.data.caffeineSensitivity)
         setCaffeineSensitivity(
           reverseSensitivityMap[res.data.caffeineSensitivity]
@@ -95,15 +68,141 @@ export default function Mypage() {
 
       if (res.data.alcoholPattern)
         setDrinkingPattern(reverseAlcoholMap[res.data.alcoholPattern]);
+    } catch (err: any) {
+      console.error("조회 실패:", err.response);
+    }
+  };
 
-      fetchMyPage(); // 🔥 이렇게 바로 다시 조회해서 최신 데이터 반영
-    } catch (err) {
-      console.error("조회 실패:");
+  useEffect(() => {
+    fetchMyPage();
+    if (localStorage.getItem("showInitialProfileSetup") === "true") {
+      setShowModal(true);
+    }
+    // handleUpdateProfile();
+  }, []);
+
+  // 모달
+  useEffect(() => {
+    if (caffeineSensitivity) setCaffeineError(false);
+  }, [caffeineSensitivity]);
+
+  useEffect(() => {
+    if (drinkingPattern) setAlcoholError(false);
+  }, [drinkingPattern]);
+
+  // 🔥 모달 닫기 핸들러
+  const handleCloseModal = () => {
+    setShowModal(false);
+  };
+
+  // 프로필 수정 API
+  // const handleUpdateProfile = async () => {
+  //   const token = localStorage.getItem("accessToken");
+  //   if (!token) {
+  //     console.error("❌ 토큰 없음 → 로그인 필요");
+  //     return;
+  //   }
+
+  //   //모달
+  //   const isCaffeineSelected = caffeineSensitivity !== "";
+  //   const isAlcoholSelected = drinkingPattern !== "";
+
+  //   setCaffeineError(!isCaffeineSelected);
+  //   setAlcoholError(!isAlcoholSelected);
+
+  //   // 필수 항목이 선택되지 않았다면 API 호출 중단 및 경고
+  //   if (!isCaffeineSelected || !isAlcoholSelected) {
+  //     // 경고 메시지는 이미 필드 옆에 표시됨
+  //     return; // 페이지 이동 안 됨
+  //   }
+
+  //   try {
+  //     const res = await axiosInstance.put(`/api/v1/users/profile/me`, {
+  //       name,
+  //       email,
+  //       caffeineSensitivity: sensitivityMap[caffeineSensitivity],
+  //       alcoholPattern: alcoholMap[drinkingPattern],
+  //     });
+
+  //     console.log("🟡 보낼 데이터:", {
+  //       name,
+  //       email,
+  //       caffeineSensitivity: sensitivityMap[caffeineSensitivity],
+  //       alcoholPattern: alcoholMap[drinkingPattern],
+  //     });
+
+  //     //모달
+  //     localStorage.removeItem("showInitialProfileSetup");
+  //     navigate("/"); // 메인 페이지로 이동
+
+  //     const reverseSensitivityMap: Record<string, string> = {
+  //       WEAK: "약함",
+  //       NORMAL: "보통",
+  //       STRONG: "강함",
+  //     };
+  //     const reverseAlcoholMap: Record<string, string> = {
+  //       NONE: "없음",
+  //       SOMETIMES: "가끔",
+  //       OFTEN: "자주",
+  //     };
+
+  //     if (res.data.caffeineSensitivity)
+  //       setCaffeineSensitivity(
+  //         reverseSensitivityMap[res.data.caffeineSensitivity]
+  //       );
+
+  //     if (res.data.alcoholPattern)
+  //       setDrinkingPattern(reverseAlcoholMap[res.data.alcoholPattern]);
+
+  //     fetchMyPage(); // 🔥 이렇게 바로 다시 조회해서 최신 데이터 반영
+  //   } catch (err) {
+  //     console.error("조회 실패:");
+  //   }
+  // };
+
+  const handleUpdateProfile = async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      console.error("❌ 토큰 없음 → 로그인 필요");
+      return;
+    }
+
+    // 🔥 유효성 검사 및 경고 메시지 표시
+    const isCaffeineSelected = caffeineSensitivity !== "";
+    const isAlcoholSelected = drinkingPattern !== "";
+
+    setCaffeineError(!isCaffeineSelected);
+    setAlcoholError(!isAlcoholSelected);
+
+    // 필수 항목이 선택되지 않았다면 API 호출 중단 및 경고
+    if (!isCaffeineSelected || !isAlcoholSelected) {
+      // 경고 메시지가 필드 옆에 표시되므로 alert는 생략하고 return만 남김
+      return; // 페이지 이동 안 됨
+    }
+
+    try {
+      const res = await axiosInstance.put(`/api/v1/users/profile/me`, {
+        name,
+        email,
+        caffeineSensitivity: sensitivityMap[caffeineSensitivity],
+        alcoholPattern: alcoholMap[drinkingPattern],
+      });
+
+      console.log("✅ 프로필 수정 성공:", res.data);
+
+      // 🔥 수정 성공 시 플래그 제거 및 메인 페이지로 이동
+      localStorage.removeItem("showInitialProfileSetup");
+      alert("프로필이 성공적으로 저장되었습니다.");
+      navigate("/");
+    } catch (err: any) {
+      console.error("수정 실패:", err.response);
+      alert("프로필 저장에 실패했습니다.");
     }
   };
 
   return (
     <Screen>
+      {showModal && <Modal isOpen={showModal} onClose={handleCloseModal} />}
       <Header>
         <Back src={bb} alt="뒤로 가기" onClick={handleGoBack} />
       </Header>
@@ -126,7 +225,7 @@ export default function Mypage() {
           <Name>이메일</Name>
           <EmailBox type="text" value={email} disabled></EmailBox>
         </NameBox>
-        <Dropdown
+        {/* <Dropdown
           label="카페인 민감도"
           selected={caffeineSensitivity}
           options={caffeineOptions}
@@ -137,12 +236,58 @@ export default function Mypage() {
           selected={drinkingPattern}
           options={drinkOptions}
           onSelect={setDrinkingPattern}
-        />
+        /> */}
+
+        <DropdownContainer>
+          <Dropdown
+            label="카페인 민감도" // Name에서 라벨을 이미 표시하므로 빈 문자열로 설정
+            selected={caffeineSensitivity}
+            options={caffeineOptions}
+            onSelect={setCaffeineSensitivity}
+          />
+          <Name>
+            {caffeineError && <ErrorMessage> *선택해 주세요</ErrorMessage>}
+          </Name>
+        </DropdownContainer>
+
+        {/* 🔥 음주 패턴 드롭다운 (경고 표시를 위해 NameBox 구조 사용) */}
+        <DropdownContainer>
+          <Dropdown
+            label="음주 패턴"
+            selected={drinkingPattern}
+            options={drinkOptions}
+            onSelect={setDrinkingPattern}
+          />
+          <Name>
+            {alcoholError && <ErrorMessage> *선택해 주세요</ErrorMessage>}
+          </Name>
+        </DropdownContainer>
         <SignUpButton onClick={handleUpdateProfile}>저장하기</SignUpButton>
       </Content>
     </Screen>
   );
 }
+
+const ErrorMessage = styled.span`
+  color: #ff3b30; /* 빨간색 */
+  font-size: 14px;
+  font-weight: 400;
+  margin-left: 8px;
+`;
+
+// 드롭다운 컴포넌트와 Name 컴포넌트를 묶어주는 컨테이너 (기존 NameBox와 동일한 역할을 하되, 경고 표시를 위해 분리)
+const DropdownContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0px;
+  width: 363px;
+  flex: none;
+  order: 0;
+  justify-content: space-between;
+  align-self: stretch;
+  flex-grow: 0;
+`;
 
 const Screen = styled.div`
   position: relative;

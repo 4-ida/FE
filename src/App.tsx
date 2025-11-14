@@ -36,7 +36,6 @@ const DrinkAlcohol = lazy(() => import("./pages/DrinkAlcohol"));
 const Nav = lazy(() => import("./components/nav"));
 const DrugChange = lazy(() => import("./pages/drugchange"));
 const Todo = lazy(() => import("./pages/modal/TodayPill"));
-const DateSelect = lazy(() => import("./pages/modal/Date"));
 const Setting = lazy(() => import("./setting"));
 
 function App() {
@@ -67,15 +66,6 @@ function App() {
               <Route path="/nav" element={<Nav />} />
               <Route path="/drug/change" element={<DrugChange />} />
               <Route path="/drug/change/:id" element={<DrugChange />} />
-              <Route
-                path="/date/select"
-                element={
-                  <DateSelect
-                    isOpen={true}
-                    onClose={() => console.log("닫힘")}
-                  />
-                }
-              />
             </Routes>
           </Suspense>
         </Router>

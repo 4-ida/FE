@@ -2,6 +2,7 @@ import styled from "styled-components";
 import { useState } from "react";
 import ThreeDots from "../../assets/BsThreeDotsVertical.svg?react";
 import { useNavigate } from "react-router-dom";
+import axiosInstance from "../../axiosInstance";
 
 const Box = styled.div`
   box-sizing: border-box;
@@ -73,7 +74,7 @@ const ButtonWrapper = styled.div`
 const BaseButton = styled.button`
   padding: 5px 10px;
   border-radius: 5px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   border: none;
   cursor: default;
@@ -144,6 +145,10 @@ interface TodayPillItem {
   pillName: string;
   dailyStatus: "SCHEDULED" | "CANCELED";
   completionStatus: "NONE" | "COMPLETED" | "MISSED";
+  registrationDate: string;
+  count?: string; // 복용량
+  memo?: string; // 메모
+  drugId?: number; // 약물 ID
 }
 
 interface TodayPillProps {
@@ -176,6 +181,29 @@ export default function TodayPill({
 
   const toggleMenu = (id: string) => {
     setShowMenuId(showMenuId === id ? null : id);
+  };
+
+  const handleDelete = async (scheduleId: string) => {
+    if (!window.confirm("정말로 이 약 복용 일정을 삭제하시겠습니까?")) return;
+
+    try {
+      // 실제 서버 DELETE 요청
+      const response = await axiosInstance.delete(
+        `/api/v1/main/calendar/schedules/${scheduleId}`
+      );
+
+      console.log("삭제 성공:", response.data);
+      alert("복약 일정이 삭제되었습니다.");
+
+      // 부모 컴포넌트에서 상태를 갱신하도록 호출
+      onDelete(scheduleId);
+    } catch (error: any) {
+      console.error("삭제 실패:", error);
+      alert(
+        error?.response?.data?.message ||
+          "복약 일정 삭제 중 오류가 발생했습니다."
+      );
+    }
   };
 
   // 마침표 제거 로직 (이전 요청사항 반영)
@@ -261,17 +289,16 @@ export default function TodayPill({
                   <ActionMenu>
                     <MenuItem
                       onClick={() => {
-                        console.log(pill);
                         navigate(`/drug/change/${pill.id}`, {
-                          state: { pill },
-                        }); // ✅ 수정 페이지로 이동
+                          state: { pill, from: "todaypill" },
+                        });
                       }}
                     >
                       수정
                     </MenuItem>
                     <MenuItem
                       onClick={() => {
-                        onDelete(pill.id);
+                        handleDelete(pill.id);
                         setShowMenuId(null);
                       }}
                     >
