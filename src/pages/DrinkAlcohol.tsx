@@ -16,6 +16,12 @@ export default function DrinkAlcohol() {
   const GotoWhatDrink = () => {
     navigate("/whatdrink");
   };
+
+  const [showContain, setShowContain] = useState(false);
+  const handleCheckChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setShowContain(e.target.checked);
+  };
+
   const [drink, setDrink] = useState("");
   const drinkOptions = [
     "맥주 (4.5%)",
@@ -72,12 +78,12 @@ export default function DrinkAlcohol() {
         <Ht onClick={handleGoToMyPage}>마이페이지</Ht>
       </Header>
       <Container>
-        <Dropdown
+        <Drop
           label="섭취 알코올 종류"
           selected={drink}
           options={drinkOptions}
           onSelect={setDrink}
-        ></Dropdown>
+        ></Drop>
         <LongBox>
           <CupText>마신 잔 수</CupText>
           <CupBox>
@@ -90,35 +96,37 @@ export default function DrinkAlcohol() {
             ></Cup>
             <Count>잔</Count>
           </CupBox>
+          <ChangeContainer>
+            <Check checked={showContain} onChange={handleCheckChange} />
+            <ChangeText>도수 및 용량 변경</ChangeText>
+          </ChangeContainer>
         </LongBox>
-        <ContainBox>
-          <CaffaineBox>
-            <CaffaineText>도수 변경</CaffaineText>
-            <CaffaineWrapper>
-              <Caffaine
-                type="number"
-                value={caffaine}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setCaffaine(e.target.value)
-                }
-              ></Caffaine>
-              <Text>%</Text>
-            </CaffaineWrapper>
-          </CaffaineBox>
-          <CaffaineBox>
-            <CaffaineText>용량 변경</CaffaineText>
-            <CaffaineWrapper>
-              <Caffaine
-                type="number"
-                value={percent}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setPercent(e.target.value)
-                }
-              ></Caffaine>
-              <Text>ml</Text>
-            </CaffaineWrapper>
-          </CaffaineBox>
-        </ContainBox>
+        {showContain && (
+          <ContainBox>
+            <CaffaineBox>
+              <CaffaineText>도수 변경</CaffaineText>
+              <CaffaineWrapper>
+                <Caffaine
+                  type="number"
+                  value={caffaine}
+                  onChange={(e) => setCaffaine(e.target.value)}
+                />
+                <Text>%</Text>
+              </CaffaineWrapper>
+            </CaffaineBox>
+            <CaffaineBox>
+              <CaffaineText>용량 변경</CaffaineText>
+              <CaffaineWrapper>
+                <Caffaine
+                  type="number"
+                  value={percent}
+                  onChange={(e) => setPercent(e.target.value)}
+                />
+                <Text>ml</Text>
+              </CaffaineWrapper>
+            </CaffaineBox>
+          </ContainBox>
+        )}
         <DrinkBox>
           <DrinkText>섭취 시간</DrinkText>
           <DropdownLine>
@@ -246,22 +254,29 @@ const AlcoholPlus = styled.button`
   line-height: 24px;
   /* identical to box height */
   text-align: center;
-
   color: #000000;
 `;
+
 const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   padding: 0px;
   gap: 30px;
-
   position: absolute;
   width: 363px;
   height: 452px;
   left: 15px;
   top: 85px;
 `;
+
+const Drop = styled(Dropdown)`
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 8px;
+`;
+
 const CaffaineBox = styled.div`
   display: flex;
   flex-direction: column;
@@ -274,9 +289,8 @@ const CaffaineBox = styled.div`
 
   /* 내부 오토레이아웃 */
   flex: none;
-
-  flex-grow: 1;
 `;
+
 const CaffaineText = styled.div`
   /* 카페인 함량 */
 
@@ -297,10 +311,12 @@ const CaffaineText = styled.div`
   align-self: stretch;
   flex-grow: 0;
 `;
+
 const CaffaineWrapper = styled.div`
   position: relative;
   display: inline-block;
 `;
+
 const Caffaine = styled.input`
   position: relative;
   width: 134px;
@@ -314,7 +330,14 @@ const Caffaine = styled.input`
 
   align-self: stretch;
   flex-grow: 0;
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
 `;
+
 const Text = styled.div`
   position: absolute;
   width: auto;
@@ -331,6 +354,7 @@ const Text = styled.div`
 
   color: #333333;
 `;
+
 const ContainBox = styled.div`
   display: flex;
   flex-direction: row;
@@ -346,6 +370,7 @@ const ContainBox = styled.div`
 
   flex-grow: 0;
 `;
+
 const DrinkBox = styled.div`
   display: flex;
   flex-direction: column;
@@ -362,6 +387,7 @@ const DrinkBox = styled.div`
   align-self: stretch;
   flex-grow: 0;
 `;
+
 const DrinkText = styled.div`
   width: 363px;
   height: 21px;
@@ -380,21 +406,15 @@ const DrinkText = styled.div`
   align-self: stretch;
   flex-grow: 0;
 `;
+
 const DropdownLine = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
   padding: 0px;
-  gap: 15px;
-
+  gap: 8px;
   width: 363px;
-  height: 40px;
-
   /* Inside auto layout */
-  flex: none;
-  order: 1;
-  align-self: stretch;
-  flex-grow: 0;
 `;
 
 const Time = styled.input`
@@ -420,10 +440,16 @@ const Time = styled.input`
   border-radius: 5px;
   box-sizing: border-box;
   padding-left: 10px;
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
 `;
 const UnitLabel = styled.span`
   position: absolute;
-  left: 35px;
+  right: 15px;
   top: 50%;
   transform: translateY(-50%);
   font-size: 16px;
@@ -432,10 +458,8 @@ const UnitLabel = styled.span`
 
   font-family: "Pretendard";
   font-style: normal;
-  font-weight: 400;
+  font-weight: 500;
   font-size: 16px;
-  line-height: 19px;
-  /* identical to box height */
 
   color: #333333;
 `;
@@ -452,6 +476,7 @@ const LongBox = styled.div`
   /* 내부 오토레이아웃 */
   flex: none;
 `;
+
 const CupText = styled.div`
   width: 363px;
   height: 21px;
@@ -464,10 +489,32 @@ const CupText = styled.div`
 
   color: #333333;
 `;
+
 const CupBox = styled.div`
   position: relative;
   display: inline-block;
 `;
+
+const ChangeContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+`;
+
+const Check = styled.input.attrs({ type: "checkbox" })`
+  width: 16px;
+  height: 16px;
+  accent-color: #b6f500; /* 체크 표시 색 */
+  border: 2px solid #b6f500;
+  border-radius: 6px;
+  cursor: pointer;
+`;
+
+const ChangeText = styled.div`
+  font-size: 15px;
+  font-weight: 400;
+`;
+
 const Cup = styled.input`
   position: relative;
   width: 323px;
@@ -481,6 +528,12 @@ const Cup = styled.input`
 
   align-self: stretch;
   flex-grow: 0;
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
 `;
 const Count = styled.div`
   position: absolute;
