@@ -4,11 +4,8 @@ import Nav from "../components/nav";
 import bb from "../assets/backbutton.svg";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useParams } from "react-router-dom";
 
 export default function WhatDrink() {
-  const { intakeId } = useParams<{ intakeId: number }>();
-  const intakeIdNum = Number(intakeId);
   const navigate = useNavigate();
   const handleGoBack = () => {
     navigate(-1);
@@ -66,44 +63,6 @@ export default function WhatDrink() {
   }, []);
 
   // 카페인 잔존 타이머 조회 연동
-  useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-
-    const CaffaineTimer = async () => {
-      try {
-        const res = await axios.get(
-          `${
-            import.meta.env.VITE_API_URL
-          }/api/v1/intakespage/intakes/caffeine/${intakeIdNum}/timer`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (res.status === 200) {
-          console.log("카페인 타이머 조회 성공");
-          console.log(res.data);
-          setIntakeData(res.data);
-        }
-      } catch (err: any) {
-        console.error("카페인 타이머 조회 실패:", err);
-
-        const status = err.response?.status;
-
-        if (status === 400) {
-          console.error("요청 데이터가 잘못됨");
-        } else if (status === 404) {
-          console.error("섭취 기록을 찾을 수 없음");
-        } else {
-          console.error("카페인 타이머 조회 실패");
-        }
-      }
-    };
-
-    CaffaineTimer();
-  }, []);
 
   return (
     <Screen>
