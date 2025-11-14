@@ -207,9 +207,12 @@ const Submit = styled.div`
 `;
 
 const AM_PM = ["오후", "오전"];
-// 1시부터 12시까지 (12개)
 const HOURS = Array.from({ length: 12 }, (_, i) => `${i + 1}시`);
-const MINUTES = ["00분", "10분", "20분", "30분", "40분", "50분"];
+// const MINUTES = ["00분", "10분", "20분", "30분", "40분", "50분"];
+const MINUTES = Array.from(
+  { length: 60 },
+  (_, i) => `${String(i).padStart(2, "0")}분`
+);
 
 export default function DrugRegistration() {
   const [pillName, setpillName] = useState("");
@@ -293,26 +296,6 @@ export default function DrugRegistration() {
       setSuggestions([]);
     }
   };
-
-  // useEffect(() => {
-  //   // 인라인 드롭다운 값이 변경될 때마다 currentScheduleTime 업데이트
-  //   setCurrentScheduleTime(`${selectedAmPm} ${selectedHour} ${selectedMinute}`);
-  // }, [selectedAmPm, selectedHour, selectedMinute]);
-
-  // useEffect(() => {
-  //   if (pillName.trim() === "") {
-  //     setSuggestions([]);
-  //     return;
-  //   }
-
-  //   const filtered = mockDrugs
-  //     .filter((drug) =>
-  //       drug.pillName.toLowerCase().includes(pillName.toLowerCase())
-  //     )
-  //     .map((drug) => drug.pillName); // pillName만 추출
-
-  //   setSuggestions(filtered);
-  // }, [pillName]);
 
   // ✅ 시간 문자열을 API 요구 형식 (HH:MM)으로 변환하는 헬퍼 함수
   useEffect(() => {

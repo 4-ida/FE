@@ -2,6 +2,7 @@ import styled from "styled-components";
 import RingTimer from "../components/timer";
 import C from "../assets/LiaExchangeAltSolid.svg?react";
 import { useNavigate } from "react-router-dom";
+import Nav from "../components/nav";
 
 const Container = styled.div`
   display: flex;
@@ -53,6 +54,7 @@ export default function LeftTimer() {
   };
   return (
     <Container>
+      <Nav />
       <Header>
         <Ht>마이페이지</Ht>
       </Header>

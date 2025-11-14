@@ -229,7 +229,11 @@ const StatusDropdownWrapper = styled.div`
 
 const AM_PM = ["오후", "오전"];
 const HOURS = Array.from({ length: 12 }, (_, i) => `${i + 1}시`);
-const MINUTES = ["00분", "10분", "20분", "30분", "40분", "50분"];
+const MINUTES = Array.from(
+  { length: 60 },
+
+  (_, i) => `${String(i).padStart(2, "0")}분`
+);
 
 // HH:mm -> 오전/오후 시 분으로 파싱하는 유틸리티 유지
 const parseTimeForEatModal = (timeStr: string) => {
@@ -303,7 +307,9 @@ export default function DrugModification() {
   const [memo, setMemo] = useState(initialPillData?.memo || "");
   const [suggestions, setSuggestions] = useState<DrugSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [selectedDrugId, setSelectedDrugId] = useState<number | null>(null);
+  const [selectedDrugId, setSelectedDrugId] = useState<number | null>(
+    initialPillData?.drugId || null
+  );
   const [isAlarmEnabled, setIsAlarmEnabled] = useState(false);
 
   // 시간 상태 초기화 (초기값은 Main에서 전달받은 time을 파싱)
@@ -322,8 +328,21 @@ export default function DrugModification() {
     "복용 완료" | "복용 전"
   >("복용 완료"); // status
 
+  // const handleClick = () => {
+  //   setStatus((prev) => (prev === "SCHEDULED" ? "CANCELED" : "SCHEDULED"));
+  // };
+
+  //변경
   const handleClick = () => {
-    setStatus((prev) => (prev === "SCHEDULED" ? "CANCELED" : "SCHEDULED"));
+    setStatus((prev) => {
+      const newStatus = prev === "SCHEDULED" ? "CANCELED" : "SCHEDULED";
+
+      // ⭐️ plan이 CANCELED로 바뀌면 복용 상태를 '복용 전'으로 초기화
+      if (newStatus === "CANCELED") {
+        setSelectedEatingStatus("복용 전");
+      }
+      return newStatus;
+    });
   };
 
   // --- [API 호출 및 useEffects] ---
@@ -412,6 +431,15 @@ export default function DrugModification() {
       return;
     }
 
+    if (selectedDrugId === null || selectedDrugId <= 0) {
+      // 이전에 백엔드에서 로드되었거나, 약품 검색을 통해 선택된 유효한 ID가 필요합니다.
+      alert(
+        "유효한 약품 ID가 설정되지 않았습니다. 약품을 검색하여 다시 선택해주세요."
+      );
+      // drugId가 0으로 넘어가는 것을 방지
+      return;
+    }
+
     // 1. UI 상태 -> API 형식 매핑
     const apiTime = convertTimeToApiFormat(
       selectedAmPm,
@@ -419,13 +447,22 @@ export default function DrugModification() {
       selectedMinute
     );
 
+    let apiStatus: "TAKEN" | "MISSED" | null;
+    if (status === "CANCELED") {
+      // ✅ plan이 CANCELED일 경우, status는 null이 됩니다.
+      apiStatus = null;
+    } else {
+      // plan이 SCHEDULED일 경우, UI의 복용 상태에 따라 매핑
+      apiStatus = selectedEatingStatus === "복용 완료" ? "TAKEN" : "MISSED";
+    }
+
     // UI: "복용 완료" -> API: "TAKEN" / UI: "복용 전" -> API: "NONE" (또는 MISSED)
     // API 스펙에 따라, "복용 전"은 "NONE"으로 매핑하는 것이 일반적입니다.
-    const apiStatus = selectedEatingStatus === "복용 완료" ? "TAKEN" : "NONE";
+    // const apiStatus = selectedEatingStatus === "복용 완료" ? "TAKEN" : "MISSED";
 
     // 2. 요청 본문 구성
     const requestBody = {
-      drugId: selectedDrugId ?? 0, // 초기 로딩 시 설정된 drugId 사용
+      drugId: selectedDrugId, // 초기 로딩 시 설정된 drugId 사용
       name: pillName,
       dose: count || "1정",
       date: currentDate, // GET으로 가져온 날짜 사용
@@ -445,19 +482,48 @@ export default function DrugModification() {
 
     // 3. PUT API 호출
     try {
-      await axiosInstance.put(
+      const response = await axiosInstance.put(
         `/api/v1/main/calendar/schedules/${idToUse}`,
         requestBody
       );
 
-      alert(`${pillName} 복용 일정이 수정되었습니다.`);
+      // alert(`${pillName} 복용 일정이 수정되었습니다.`);
 
-      // 수정 성공 후 메인 페이지로 이동 (갱신 유도)
+      // if (apiStatus === "TAKEN") {
+      //   // 타이머 페이지로 이동하며 scheduleId 전달
+      //   navigate("/timer", {
+      //     replace: true,
+      //     state: {
+      //       scheduleId: idToUse,
+      //       timerActivated: true,
+      //     },
+      //   });
+      // } else {
+      //   // 그 외 상태(MISSED, CANCELED)는 메인 페이지로 이동
+      //   navigate("/main", {
+      //     replace: true,
+      //     state: {
+      //       selectedDate: currentDate,
+      //       scheduleUpdated: true,
+      //     },
+      //   });
+      // }
+      console.log("✅ 수정 성공 Response:", response.data);
+
+      if (apiStatus === "TAKEN") {
+        alert(
+          "⏰ 타이머 설정이 완료되었습니다. 메인 페이지에서 타이머를 확인해주세요."
+        );
+      } else {
+        alert(`${pillName} 복용 일정이 수정되었습니다.`);
+      }
+
+      // 상태와 관계없이 메인 페이지로 이동 (status가 TAKEN일 때는 알림 후 이동)
       navigate("/main", {
         replace: true,
         state: {
           selectedDate: currentDate,
-          scheduleUpdated: true,
+          scheduleUpdated: true, // 메인 페이지 갱신 유도
         },
       });
     } catch (error) {
@@ -490,6 +556,7 @@ export default function DrugModification() {
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               setpillName(e.target.value);
               setShowSuggestions(true);
+              setSelectedDrugId(null);
             }}
             onFocus={() => setShowSuggestions(true)}
             onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
@@ -570,7 +637,6 @@ export default function DrugModification() {
             />
           )}
         </StatusDropdownWrapper>
-        {/* ... (알림 Toggle 유지) */}
         <ToggleWrapper>
           <div>알림 설정</div>
           <ToggleLabel>

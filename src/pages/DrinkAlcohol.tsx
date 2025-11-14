@@ -469,9 +469,9 @@ const LongBox = styled.div`
   align-items: flex-start;
   padding: 0px;
   gap: 8px;
-
   width: 363px;
   height: auto;
+  box-sizing: border-box;
 
   /* 내부 오토레이아웃 */
   flex: none;
@@ -492,7 +492,9 @@ const CupText = styled.div`
 
 const CupBox = styled.div`
   position: relative;
-  display: inline-block;
+  display: flex;
+  box-sizing: border-box;
+  width: 363px;
 `;
 
 const ChangeContainer = styled.div`
@@ -524,7 +526,6 @@ const Cup = styled.input`
   border-radius: 5px;
   padding-left: 10px;
   /* 내부 오토레이아웃 */
-  flex: none;
 
   align-self: stretch;
   flex-grow: 0;

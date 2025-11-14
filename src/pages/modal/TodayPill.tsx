@@ -92,10 +92,10 @@ const StatusButton = styled(BaseButton)<{ $status: "SCHEDULED" | "CANCELED" }>`
 `;
 
 const CompletionButton = styled(BaseButton)<{
-  $completion: "COMPLETED" | "MISSED";
+  $completion: "TAKEN" | "MISSED";
 }>`
   background-color: ${({ $completion }) =>
-    $completion === "COMPLETED"
+    $completion === "TAKEN"
       ? "#E9FFEB"
       : "#EDEDED"}; /* 완료: 라이트 그린, 미섭취: 라이트 그레이 */
   color: #333;
@@ -144,7 +144,7 @@ interface TodayPillItem {
   time: string;
   pillName: string;
   dailyStatus: "SCHEDULED" | "CANCELED";
-  completionStatus: "NONE" | "COMPLETED" | "MISSED";
+  completionStatus: "NONE" | "TAKEN" | "MISSED";
   registrationDate: string;
   count?: string; // 복용량
   memo?: string; // 메모
@@ -163,7 +163,7 @@ interface TodayPillProps {
   ) => void;
   onCompletionChange: (
     id: string,
-    newCompletionStatus: "COMPLETED" | "MISSED" | "NONE"
+    newCompletionStatus: "TAKEN" | "MISSED" | "NONE"
   ) => void;
 }
 
@@ -234,10 +234,6 @@ export default function TodayPill({
                         ? "CANCELED"
                         : "SCHEDULED";
                     onStatusChange(pill.id, newStatus);
-                    // 취소 시 완료/미섭취 상태 초기화
-                    if (newStatus === "CANCELED") {
-                      onCompletionChange(pill.id, "NONE");
-                    }
                   }}
                 >
                   {pill.dailyStatus === "SCHEDULED" ? "예정" : "취소"}
@@ -250,7 +246,7 @@ export default function TodayPill({
                       // 복용 완료 버튼 (기본값)
                       <BaseButton
                         style={{ backgroundColor: "#EDEDED", minWidth: "55px" }}
-                        onClick={() => onCompletionChange(pill.id, "COMPLETED")}
+                        onClick={() => onCompletionChange(pill.id, "TAKEN")}
                       ></BaseButton>
                     ) : (
                       // 완료 또는 미섭취 상태 표시
@@ -259,15 +255,13 @@ export default function TodayPill({
                         onClick={() => {
                           // 상태 클릭 시 토글 (미섭취 <-> 완료, 또는 NONE으로 돌아갈 수도 있음)
                           const newCompletion =
-                            pill.completionStatus === "COMPLETED"
+                            pill.completionStatus === "TAKEN"
                               ? "MISSED"
-                              : "COMPLETED";
+                              : "TAKEN";
                           onCompletionChange(pill.id, newCompletion);
                         }}
                       >
-                        {pill.completionStatus === "COMPLETED"
-                          ? "완료"
-                          : "미섭취"}
+                        {pill.completionStatus === "TAKEN" ? "완료" : "미섭취"}
                       </CompletionButton>
                     )}
                   </>
