@@ -35,7 +35,6 @@ const DrinkCaffaine = lazy(() => import("./pages/DrinkCaffaine"));
 const DrinkAlcohol = lazy(() => import("./pages/DrinkAlcohol"));
 const Nav = lazy(() => import("./components/nav"));
 const DrugChange = lazy(() => import("./pages/drugchange"));
-const Todo = lazy(() => import("./pages/modal/TodayPill"));
 const Setting = lazy(() => import("./setting"));
 
 function App() {

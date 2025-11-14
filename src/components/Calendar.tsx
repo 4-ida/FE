@@ -179,17 +179,17 @@ function renderDot(
   const savedSchedulesString = localStorage.getItem("drugSchedules");
   if (!savedSchedulesString) return null;
 
-  interface DotSchedule {
-    registrationDate: string; // YYYY-MM-DD 형식의 날짜 문자열
-  }
+  // interface DotSchedule {
+  //   registrationDate: string; // YYYY-MM-DD 형식의 날짜 문자열
+  // }
 
-  let schedules: DotSchedule[] = [];
-  try {
-    schedules = JSON.parse(savedSchedulesString);
-  } catch (e) {
-    console.error("Failed to parse drugSchedules:", e);
-    return null;
-  }
+  // let schedules: DotSchedule[] = [];
+  // try {
+  //   schedules = JSON.parse(savedSchedulesString);
+  // } catch (e) {
+  //   console.error("Failed to parse drugSchedules:", e);
+  //   return null;
+  // }
 
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");

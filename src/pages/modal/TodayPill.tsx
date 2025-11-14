@@ -171,7 +171,6 @@ export default function TodayPill({
   date,
   pills,
   onDelete,
-  onModify,
   onStatusChange,
   onCompletionChange,
 }: TodayPillProps) {
