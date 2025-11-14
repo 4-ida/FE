@@ -1,9 +1,10 @@
 import styled from "styled-components";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AiOutlinePlusCircle } from "react-icons/ai";
 import Nav from "../components/nav";
 import bb from "../assets/backbutton.svg";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 export default function WhatDrink() {
   const navigate = useNavigate();
@@ -21,6 +22,47 @@ export default function WhatDrink() {
   const GotoDrinkAlcohol = () => {
     navigate("/drink/alcohol");
   };
+  const [intakeData, setIntakeData] = useState<IntakeData | null>(null);
+
+  // 섭취 약물 리스트 연동
+  interface TimerItem {
+    intakeId: number;
+    name: string;
+    amount: number;
+    intakeType: string;
+    abv?: number;
+  }
+
+  interface IntakeData {
+    caffeineTimer: TimerItem | null; // ✅ 배열 말고 그냥 한 개
+    alcoholTimer: TimerItem | null; // ✅ 배열 말고 그냥 한 개
+  }
+
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    const Details = async () => {
+      try {
+        const res = await axios.get(
+          `${
+            import.meta.env.VITE_API_URL
+          }/api/v1/intakespage/intakes/active-timers`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        if (res.status === 200) {
+          console.log("약물 리스트 조회 성공");
+          console.log(res.data);
+          setIntakeData(res.data);
+        }
+      } catch (err: any) {
+        console.error("약물 리스트 조회 실패", err);
+      }
+    };
+    Details();
+  }, []);
 
   return (
     <Screen>
@@ -29,44 +71,33 @@ export default function WhatDrink() {
         <Ht onClick={handleGoToMyPage}>마이페이지</Ht>
       </Header>
       <ContentContainer>
-        <DrugBox>
-          <DrugText>현재 복용하고 있는 약</DrugText>
-          <DrugLine>
-            <TakeDurg
-              type="string"
-              value={drug}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setDrug(e.target.value)
-              }
-            ></TakeDurg>
-            <Plus></Plus>
-          </DrugLine>
-        </DrugBox>
         <ButtonLine>
           <CaffainePlus onClick={GotoDrinkCaffaine}>카페인 추가</CaffainePlus>
           <AlcoholPlus onClick={GotoDrinkAlcohol}>알코올 추가</AlcoholPlus>
         </ButtonLine>
-        <NoBox>
-          <Notext>금지 시간 분석</Notext>
-          <No></No>
-        </NoBox>
         <TakenBox>
           현재 섭취한 음료
-          <CoffeeLine>
-            <Coffee></Coffee>
-            <Coffee>mg</Coffee>
-          </CoffeeLine>
-          <CoffeeLine>
-            <Alcohol></Alcohol>
-            <Alcohol>ml</Alcohol>
-            <Alcohol>%</Alcohol>
-          </CoffeeLine>
+          {intakeData?.caffeineTimer && (
+            <CoffeeLine>
+              <Coffee>{intakeData.caffeineTimer.name}</Coffee>
+              <Coffee>{intakeData.caffeineTimer.amount} mg</Coffee>
+            </CoffeeLine>
+          )}
+          {/* 알코올 표시 */}
+          {intakeData?.alcoholTimer && (
+            <CoffeeLine>
+              <Alcohol>{intakeData.alcoholTimer.name}</Alcohol>
+              <Alcohol>{intakeData.alcoholTimer.amount} ml</Alcohol>
+              <Alcohol>{intakeData.alcoholTimer.abv}%</Alcohol>
+            </CoffeeLine>
+          )}
         </TakenBox>
       </ContentContainer>
       <Nav></Nav>
     </Screen>
   );
 }
+
 const Screen = styled.div`
   position: relative;
   width: 393px;
@@ -107,85 +138,6 @@ const ContentContainer = styled.div`
   top: 72px;
 `;
 
-const DrugBox = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 0px;
-  gap: 8px;
-
-  width: 363px;
-  height: 69px;
-
-  /* 내부 오토레이아웃 */
-  flex: none;
-
-  align-self: stretch;
-  flex-grow: 0;
-`;
-const DrugText = styled.div`
-  width: 363px;
-  height: 21px;
-
-  font-family: "Pretendard";
-  font-style: normal;
-  font-weight: 500;
-  font-size: 18px;
-  line-height: 21px;
-
-  color: #333333;
-
-  /* 내부 오토레이아웃 */
-  flex: none;
-
-  align-self: stretch;
-  flex-grow: 0;
-`;
-const DrugLine = styled.div`
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0px;
-  gap: 13px;
-
-  width: 363px;
-  height: 40px;
-
-  /* 내부 오토레이아웃 */
-  flex: none;
-
-  align-self: stretch;
-  flex-grow: 0;
-`;
-const TakeDurg = styled.input<{ type: string }>`
-  /* Frame 6 */
-
-  margin: 0 auto;
-  width: 311px;
-  height: 40px;
-
-  border: 1.5px solid #ebebeb;
-  border-radius: 5px;
-
-  /* 내부 오토레이아웃 */
-  flex: none;
-
-  flex-grow: 0;
-  padding-left: 10px;
-`;
-const Plus = styled(AiOutlinePlusCircle)`
-  margin: 0 auto;
-  width: 28px;
-  height: 28px;
-
-  /* 내부 오토레이아웃 */
-  flex: none;
-
-  flex-grow: 0;
-  border-color: #b6f500;
-  cursor: pointer;
-`;
 const ButtonLine = styled.div`
   display: flex;
   flex-direction: row;
@@ -327,6 +279,7 @@ const TakenBox = styled.div`
 const CoffeeLine = styled.div`
   display: flex;
   flex-direction: row;
+  justify-content: flex-start;
   align-items: center;
   padding: 0px;
   gap: 15px;

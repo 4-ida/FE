@@ -38,6 +38,7 @@ export default function Signup() {
 
       if (res.status === 200) {
         console.log(" 로그인 성공:", res.data);
+        alert("로그인 성공");
         localStorage.setItem("accessToken", res.data.accessToken);
         if (localStorage.getItem("justSignedUp") === "true") {
           localStorage.removeItem("justSignedUp"); // 한 번만 쓰고 지움
@@ -75,7 +76,6 @@ export default function Signup() {
 
       navigate("/mypage");
     } else {
-      alert("로그인 실패");
       navigate("/login");
     }
   }, []);

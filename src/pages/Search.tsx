@@ -17,59 +17,55 @@ interface Drug {
 
 export default function Search() {
   const [query, setQuery] = useState("");
-  const [drugs, setDrugs] = useState<Drug[]>([]);
   const token = localStorage.getItem("accessToken");
+  const [searchedDrugs, setSearchedDrugs] = useState<Drug[]>([]);
+  const [bookmarkDrugs, setBookmarkDrugs] = useState<Drug[]>([]);
   const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
+  const [pagedDrugs, setPagedDrugs] = useState<Drug[]>([]);
   const Navigate = useNavigate();
   const gotoInformation = (drugId: string) => {
     Navigate(`/drug/information/${drugId}`);
   };
-  const toggleBookmark = (id: number) => {
-    setDrugs((prev) =>
-      prev.map((drug) =>
-        drug.drugId === drug.drugId
-          ? { ...drug, bookmarked: !drug.bookmarked }
-          : drug
-      )
-    );
-  };
 
-  const filteredDrugs = drugs.filter((drug) =>
-    drug.name.includes(query.trim())
-  );
-
-  // ⭐ 북마크 보기 필터 적용
-  const displayedDrugs = showBookmarksOnly
-    ? filteredDrugs.filter((drug) => drug.bookmarked)
-    : filteredDrugs;
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const limit = 5;
 
-  // 페이지네이션
-  useEffect(() => {
-    const filtered = drugs.filter((drug) =>
-      drug.name.toLowerCase().includes(query.toLowerCase())
-    );
-    setTotalPages(Math.ceil(filtered.length / limit));
-
-    const startIndex = (currentPage - 1) * limit;
-    const paginated = filtered.slice(startIndex, startIndex + limit);
-    setDrugs(paginated);
-  }, [query, currentPage]);
   const handlePrev = () => {
-    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
+    if (currentPage > 1) {
+      setCurrentPage((prev) => prev - 1);
+    }
   };
+
   const handleNext = () => {
-    if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
+    if (currentPage < totalPages) {
+      setCurrentPage((prev) => prev + 1);
+    }
   };
+
   const handlePageClick = (page: number) => {
     setCurrentPage(page);
   };
 
+  // 페이지네이션
+  useEffect(() => {
+    if (showBookmarksOnly) {
+      setCurrentPage(1); // 🔥 북마크 모드 켜질 때 페이지 1로
+    }
+    const filtered = searchedDrugs.filter((d) =>
+      d.name.toLowerCase().includes(query.toLowerCase())
+    );
+
+    setTotalPages(Math.ceil(filtered.length / limit));
+
+    const startIndex = (currentPage - 1) * limit;
+    setPagedDrugs(filtered.slice(startIndex, startIndex + limit));
+  }, [searchedDrugs, query, currentPage, showBookmarksOnly]);
+
   // 검색창 API 연동
   useEffect(() => {
-    const Search = async (query: string) => {
+    if (showBookmarksOnly) return;
+    const SearchDrug = async (query: string) => {
       try {
         const res = await axiosInstance.get(`/api/v1/drug/search`, {
           params: { q: query, page: 0, size: 5 },
@@ -80,14 +76,14 @@ export default function Search() {
 
         console.log("약 명 검색 성공:", res.data);
         if (Array.isArray(res.data.items)) {
-          setDrugs(res.data.items); // 이제 타입 에러 안 남!
+          setSearchedDrugs(res.data.items); // 이제 타입 에러 안 남!
         }
       } catch (err: any) {
         console.error("검색 실패", err);
       }
     };
-    if (query) Search(query);
-  }, [query]);
+    if (query.trim() !== "") SearchDrug(query);
+  }, [query, showBookmarksOnly]);
 
   // 자동완성 API 연동
   const auto = async () => {
@@ -119,17 +115,22 @@ export default function Search() {
     try {
       const res = await axios.post(
         `${import.meta.env.VITE_API_URL}/api/v1/drug/bookmarks/${drugId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        null,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
+
       if (res.status === 200) {
         console.log("약물 북마크 추가 성공");
-        console.log(res.data);
+
+        const added = searchedDrugs.find((d) => d.drugId === drugId);
+
+        if (added) {
+          setBookmarkDrugs((prev) => [...prev, { ...added, bookmarked: true }]);
+        }
+
+        updateBookmarkUI(drugId, true);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error("북마크 추가 실패", err);
     }
   };
@@ -139,47 +140,72 @@ export default function Search() {
     try {
       const res = await axios.delete(
         `${import.meta.env.VITE_API_URL}/api/v1/drug/bookmarks/${drugId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
+
       if (res.status === 200) {
         console.log("약물 북마크 취소 성공");
-        console.log(res.data);
+
+        setBookmarkDrugs((prev) => prev.filter((d) => d.drugId !== drugId));
+
+        updateBookmarkUI(drugId, false);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error("북마크 취소 실패", err);
     }
   };
 
   // 북마크 목록 조회
-  const Bookmark = async () => {
-    try {
-      const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/v1/drug/bookmarks`,
-        {
-          params: {
-            page: 0,
-            size: 20,
-            sort: "recent",
-          },
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+  useEffect(() => {
+    const getBookmarkList = async () => {
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/v1/drug/bookmarks`,
+          {
+            params: {
+              page: 0,
+              size: 100,
+              sort: "recent",
+            },
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
-      if (res.status === 200) {
-        console.log("⭐ 약물 북마크 목록 조회 성공");
-        console.log(res.data);
+        console.log(" 북마크 목록 조회 성공", res.data);
+
+        if (Array.isArray(res.data.items)) {
+          setBookmarkDrugs(res.data.items); // 🔧 북마크 데이터를 별도의 상태에 저장
+        }
+      } catch (err) {
+        console.error("북마크 목록 조회 실패", err);
       }
-    } catch (err: any) {
-      console.error("북마크 목록 조회 실패", err);
+    };
+
+    getBookmarkList();
+  }, [showBookmarksOnly]);
+
+  const updateBookmarkUI = (drugId: string, value: boolean) => {
+    // 검색 리스트 UI 업데이트
+    setSearchedDrugs((prev) =>
+      prev.map((d) => (d.drugId === drugId ? { ...d, bookmarked: value } : d))
+    );
+
+    // 북마크 목록 UI도 즉시 업데이트
+    if (value) {
+      // 북마크 추가
+      const added = searchedDrugs.find((d) => d.drugId === drugId);
+      if (added && !bookmarkDrugs.some((d) => d.drugId === drugId)) {
+        setBookmarkDrugs((prev) => [...prev, { ...added, bookmarked: true }]);
+      }
+    } else {
+      // 북마크 제거
+      setBookmarkDrugs((prev) => prev.filter((d) => d.drugId !== drugId));
     }
   };
 
+  const displayedDrugs = showBookmarksOnly ? bookmarkDrugs : pagedDrugs;
   return (
     <Screen>
       <SearchContainer>
@@ -237,14 +263,13 @@ export default function Search() {
 
                         if (drug.bookmarked) {
                           // 이미 북마크된 경우 → 북마크 해제
-                          DeleteBookmark(drug.drugId.toString());
+                          DeleteBookmark(drug.drugId);
                         } else {
                           // 아직 북마크 안 된 경우 → 북마크 추가
-                          handleBookmark(drug.drugId.toString());
+                          handleBookmark(drug.drugId);
                         }
 
                         // UI 상태 즉시 반영 (색상 토글)
-                        toggleBookmark(drug.drugId);
                       }}
                     >
                       {drug.bookmarked ? (
@@ -262,6 +287,7 @@ export default function Search() {
           )}
         </ProductList>
       )}
+
       {query.trim() !== "" && displayedDrugs.length > 1 && (
         <PageNumberBox>
           <NumberLine>
@@ -287,7 +313,6 @@ export default function Search() {
           </NumberLine>
         </PageNumberBox>
       )}
-
       <Nav></Nav>
     </Screen>
   );
