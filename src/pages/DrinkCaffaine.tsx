@@ -9,9 +9,9 @@ import axiosInstance from "../axiosInstance";
 
 export default function DrinkCaffaine() {
   const [beverageName, setBeverageName] = useState("");
-  const [morning, setMorning] = useState("");
+  const [meridiem, setMeridiem] = useState("");
   const drinkOptions = ["오전", "오후"];
-  const [time, setTime] = useState("시");
+  const [hour, setHour] = useState("시");
   const timeOptions = [
     "1시",
     "2시",
@@ -50,27 +50,68 @@ export default function DrinkCaffaine() {
   };
   const handleReset = () => {
     setBeverageName(first.beverageName);
-    setTime(first.time);
+    setHour(first.time);
     setCaffeineMg(first.caffeineMg);
     setIntakeRatio(first.intakeRatio);
     setMinute(first.minute);
-    setMorning(first.morning);
+    setMeridiem(first.morning);
   };
 
+  // 카페인 섭취 입력 연동
   const handleCaffaine = async () => {
     try {
-      const res = await axiosInstance.post(
-        `${import.meta.env.VITE_API_URL}/api/v1/intakespage/intakes/caffeine `
-      );
+      const token = localStorage.getItem("accessToken");
 
-      if (res.status === 200) {
-        console.log("카페인 섭취 등록 성공 ");
+      const intakeAt = convertToISO(meridiem, hour, minute);
+
+      const res = await axiosInstance.post(
+        `/api/v1/intakespage/intakes/caffeine`,
+        {
+          beverageName,
+          caffeineMg,
+          intakeRatio,
+          intakeAt,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      console.log("res:", res);
+      if (res.status === 201) {
+        console.log("카페인 섭취 등록 성공");
         console.log(res.data);
       }
-    } catch (err: any) {
-      console.error("카페인 섭취등록 실패 ", err);
+    } catch (err) {
+      console.error("카페인 섭취등록 실패", err);
     }
   };
+
+  // convertToISO(meridiem: string, hour: string, minute: string)
+  function convertToISO(meridiem: string, hour: string, minute: string) {
+    // hour: "1시" → 1 숫자로 변환
+    const h = Number(hour.replace("시", ""));
+    const m = Number(minute.replace("분", ""));
+
+    let convertedHour = h;
+
+    if (meridiem === "오전") {
+      if (h === 12) convertedHour = 0; // 오전 12시는 00시
+    } else if (meridiem === "오후") {
+      if (h !== 12) convertedHour = h + 12; // 오후 +12
+    }
+
+    // 오늘 날짜 기준
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+
+    // ISO 8601 생성
+    return `${year}-${month}-${day}T${String(convertedHour).padStart(
+      2,
+      "0"
+    )}:${String(m).padStart(2, "0")}:00`;
+  }
 
   return (
     <Screen>
@@ -122,15 +163,15 @@ export default function DrinkCaffaine() {
           <DropdownLine>
             <Dropdown
               variant="custom"
-              selected={morning}
+              selected={meridiem}
               options={drinkOptions}
-              onSelect={setMorning}
+              onSelect={setMeridiem}
             ></Dropdown>
             <Dropdown
               variant="custom"
-              selected={time}
+              selected={hour}
               options={timeOptions}
-              onSelect={setTime}
+              onSelect={setHour}
             ></Dropdown>
 
             <div style={{ position: "relative", display: "inline-block" }}>
@@ -146,7 +187,14 @@ export default function DrinkCaffaine() {
       </Container>
       <ButtonLine>
         <CaffainePlus onClick={handleReset}>초기화</CaffainePlus>
-        <AlcoholPlus onClick={handleCaffaine}>완료</AlcoholPlus>
+        <AlcoholPlus
+          onClick={() => {
+            handleCaffaine(); // 1) API 연동 실행
+            navigate("/whatdrink"); // 2) 다른 페이지로 이동
+          }}
+        >
+          완료
+        </AlcoholPlus>
       </ButtonLine>
       <Nav />
     </Screen>

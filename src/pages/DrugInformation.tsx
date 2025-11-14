@@ -24,6 +24,7 @@ interface DrugDetail {
   images: string;
 }
 export default function DrugInformation() {
+  const [isExpanded, setIsExpanded] = useState(false);
   const { drugId } = useParams<{ drugId: string }>(); // URL에서 id 가져오기
   const numericId = Number(drugId); // string → number로 변환
   const navigate = useNavigate();
@@ -71,7 +72,6 @@ export default function DrugInformation() {
           <RightBox>
             <TitleBox>
               <Title>제품명</Title>
-
               <Box>{drug.name}</Box>
             </TitleBox>
             <TitleBox>
@@ -112,19 +112,19 @@ export default function DrugInformation() {
           </BigBox>
           <BigBox>
             <Title2>용법 / 용량</Title2>
-            <LongBox>{drug.dosage}</LongBox>
+            <LongBox expanded={isExpanded}>{drug.dosage}</LongBox>
           </BigBox>
           <BigBox>
             <Title2>효능 / 효과</Title2>
-            <LongBox>{drug.efficacy}</LongBox>
+            <LongBox expanded={isExpanded}>{drug.efficacy}</LongBox>
           </BigBox>
           <BigBox>
             <Title2>주요성분 목록</Title2>
-            <LongBox>{drug.ingredients}</LongBox>
+            <LongBox expanded={isExpanded}>{drug.ingredients}</LongBox>
           </BigBox>
           <BigBox>
             <Title2>알코올 및 카페인과 상호작용</Title2>
-            <LongBox>
+            <LongBox expanded={isExpanded}>
               {" "}
               {drug.cautionsSummary.alcohol}
               <br />
@@ -133,7 +133,11 @@ export default function DrugInformation() {
           </BigBox>
           <BigBox>
             <Title2>복용 시 주의사항</Title2>
-            <LongBox>{drug.cautions}</LongBox>
+            <LongBox expanded={isExpanded}>{drug.cautions}</LongBox>
+
+            <ToggleBtn onClick={() => setIsExpanded(!isExpanded)}>
+              {isExpanded ? "접기 " : "더보기 "}
+            </ToggleBtn>
           </BigBox>
         </DownContainer>
       </Container>
@@ -144,10 +148,13 @@ export default function DrugInformation() {
 const Screen = styled.div`
   position: relative;
   width: 393px;
-  height: 852px;
+  min-height: 100vh; // 화면 전체 높이를 기본값으로
   background: #ffffff;
   padding-bottom: 64px;
+  overflow-y: auto; // 스크롤 활성화
+  padding-bottom: 150px;
 `;
+
 const Header = styled.div`
   display: flex;
   width: 100%;
@@ -177,7 +184,7 @@ const Container = styled.div`
 
   position: absolute;
   width: 363px;
-  height: 626px;
+  height: auto;
   left: calc(50% - 363px / 2);
   top: 80px;
 `;
@@ -309,7 +316,7 @@ const Title2 = styled.div`
   align-self: stretch;
   flex-grow: 0;
 `;
-const LongBox = styled.ul`
+const LaterBox = styled.ul`
   display: block; /* flex item으로 취급하지 않게 */
   align-self: flex-start; /* 부모 높이에 맞춰 늘어나지 않게 */
   align-items: initial; /* 내부 컨텐츠 높이 기준으로 계산 */
@@ -320,11 +327,6 @@ const LongBox = styled.ul`
   border: 1.5px solid #ebebeb;
   border-radius: 5px;
   padding: 10px;
-  /* Inside auto layout */
-  flex: none;
-  order: 1;
-  align-self: stretch;
-  flex-grow: 0;
   font-family: "Pretendard";
   font-style: normal;
   font-weight: 400;
@@ -384,4 +386,47 @@ const Line = styled.div`
   display: flex;
   flex-direction: row;
   gap: 10px;
+`;
+
+const LongBox = styled.div<{ expanded: boolean }>`
+  display: block; /* flex item으로 취급하지 않게 */
+  align-self: flex-start; /* 부모 높이에 맞춰 늘어나지 않게 */
+  align-items: initial; /* 내부 컨텐츠 높이 기준으로 계산 */
+  height: auto; /* fit-content 대신 auto로 자동 높이 계산 */
+  width: 343px;
+  background: #ffffff;
+  border: 1.5px solid #ebebeb;
+  border-radius: 5px;
+  padding: 10px;
+  background: #ffffff;
+  border: 1.5px solid #ebebeb;
+  border-radius: 5px;
+  padding: 10px;
+  font-family: "Pretendard";
+  font-size: 16px;
+  line-height: 20px;
+  color: #333333;
+  white-space: pre-line;
+
+  /* 🔥 펼치기/접기 핵심 */
+  ${({ expanded }) =>
+    expanded
+      ? `
+    overflow: visible;
+    display: block;
+  `
+      : `
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;   /* 3줄만 보여줌 */
+    -webkit-box-orient: vertical;
+  `}
+`;
+const ToggleBtn = styled.div`
+  font-size: 14px;
+  color: #7fab00;
+  cursor: pointer;
+  margin-top: 5px;
+  user-select: none;
+  align-self: flex-end;
 `;
