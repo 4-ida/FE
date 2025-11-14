@@ -5,23 +5,24 @@ import { useNavigate } from "react-router-dom";
 import Nav from "../components/nav";
 
 import { useParams } from "react-router-dom";
-import axios from "axios";
+import axiosInstance from "../axiosInstance";
 
 interface DrugDetail {
-  id: number;
+  drugId: string;
   name: string;
   entpName: string;
   rxType: string;
   strength: string;
   dosage: string;
-  ingredients: string;
+  ingredients: string[];
   efficacy: string;
   cautionsSummary: {
     alcohol: string;
     caffeine: string;
   };
   cautions: string;
-  images: string;
+  images: string[];
+  retrievedAt?: string;
 }
 export default function DrugInformation() {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -37,20 +38,13 @@ export default function DrugInformation() {
 
   // 약품 상세조회 연동
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
     const Details = async (drugId: string) => {
       try {
-        const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/v1/drug/details/${drugId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+        const res = await axiosInstance.get(
+          `/api/v1/drug/details/${drugId}`
         );
         if (res.status === 200) {
-          console.log("약품상세조회 성공");
-          console.log(res.data);
+          console.log("약품상세조회 성공", res.data);
           setDrug(res.data);
         }
       } catch (err: any) {
@@ -58,7 +52,7 @@ export default function DrugInformation() {
       }
     };
     if (drugId) Details(drugId);
-  }, []);
+  }, [drugId]);
 
   if (!drug) return <div>Loading...</div>;
   return (
@@ -80,22 +74,40 @@ export default function DrugInformation() {
               <Box>{drug.strength}</Box>
             </TitleBox>
           </RightBox>
-          <img
-            src={drug.images}
-            alt={drug.name}
+          {drug.images && drug.images.length > 0 && drug.images[0] && (
+            <img
+              src={drug.images[0]}
+              alt={drug.name}
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = "none";
+                const parent = target.parentElement;
+                if (parent) {
+                  const placeholder = parent.querySelector(".default-image") as HTMLElement;
+                  if (placeholder) placeholder.style.display = "flex";
+                }
+              }}
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: "10px",
+                width: "150px",
+                height: "150px",
+                borderRadius: "10px",
+                flexShrink: 0,
+              }}
+            />
+          )}
+          <DefaultImage
+            className="default-image"
             style={{
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "center",
-              alignItems: "center",
-              gap: "10px",
-
-              width: "150px",
-              height: "150px",
-
-              borderRadius: "10px",
+              display: drug.images && drug.images.length > 0 && drug.images[0] ? "none" : "flex",
             }}
-          />
+          >
+            정보 없음
+          </DefaultImage>
         </UpContainer>
         <DownContainer>
           <BigBox>
@@ -120,7 +132,11 @@ export default function DrugInformation() {
           </BigBox>
           <BigBox>
             <Title2>주요성분 목록</Title2>
-            <LongBox expanded={isExpanded}>{drug.ingredients}</LongBox>
+            <LongBox expanded={isExpanded}>
+              {Array.isArray(drug.ingredients)
+                ? drug.ingredients.join(", ")
+                : drug.ingredients}
+            </LongBox>
           </BigBox>
           <BigBox>
             <Title2>알코올 및 카페인과 상호작용</Title2>
@@ -400,6 +416,21 @@ const LongBox = styled.div<{ expanded: boolean }>`
     -webkit-line-clamp: 3;   /* 3줄만 보여줌 */
     -webkit-box-orient: vertical;
   `}
+`;
+const DefaultImage = styled.div`
+  width: 150px;
+  height: 150px;
+  border-radius: 10px;
+  background: #ebebeb;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: "Pretendard";
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 17px;
+  color: #999999;
 `;
 const ToggleBtn = styled.div`
   font-size: 14px;
