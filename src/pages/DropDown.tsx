@@ -27,13 +27,12 @@ export default function Dropdown({
 }: DropdownProps) {
   const [show, setShow] = useState(false);
   const [openUp, setOpenUp] = useState(false);
-  const [displayValue, setDisplayValue] = useState(selected); // ✅ 추가
   const ref = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null); // ✅ 버튼 위치 확인용
 
-  useEffect(() => {
-    setDisplayValue(selected);
-  }, [selected]);
+  // useEffect(() => {
+  //   setDisplayValue(selected);
+  // }, [selected]);
 
   const toggleDropdown = () => {
     if (disableDefaultUI) {
@@ -55,9 +54,8 @@ export default function Dropdown({
   }, [show]);
 
   const handleSelect = (value: string) => {
-    setDisplayValue(value); // ✅ 표시용 값 변경
+    // setDisplayValue(value); // ✅ 표시용 값 변경
     onSelect(value); // ✅ 부모 상태 갱신
-    onSelect(value);
     setShow(false);
   };
 
@@ -79,13 +77,13 @@ export default function Dropdown({
       <SelectButton
         ref={buttonRef}
         onClick={toggleDropdown}
-        isOpen={show}
+        $isOpen={show}
         $variant={variant}
       >
         <span style={{ color: selected ? "#333" : "#999" }}>
           {selected || placeholder}
         </span>
-        <ArrowIcon isOpen={show} />
+        <ArrowIcon $isOpen={show} />
       </SelectButton>
 
       {!disableDefaultUI && show && (
@@ -126,7 +124,7 @@ const Label = styled.div`
 `;
 
 const SelectButton = styled.button<{
-  isOpen: boolean;
+  $isOpen: boolean;
   $variant: "default" | "custom";
 }>`
   /* width: ${({ $variant }) => ($variant === "custom" ? "111px" : "363px")}; */
@@ -151,9 +149,9 @@ const SelectButton = styled.button<{
   }
 `;
 
-const ArrowIcon = styled(DropdownIcon)<{ isOpen: boolean }>`
+const ArrowIcon = styled(DropdownIcon)<{ $isOpen: boolean }>`
   transition: transform 0.2s ease;
-  transform: ${({ isOpen }) => (isOpen ? "rotate(180deg)" : "none")};
+  transform: ${({ $isOpen }) => ($isOpen ? "rotate(180deg)" : "none")};
   margin-right: -10px;
 `;
 

@@ -1,5 +1,7 @@
 import styled from "styled-components";
 import RingTimer from "../components/timer";
+import C from "../assets/LiaExchangeAltSolid.svg?react";
+import { useNavigate } from "react-router-dom";
 
 const Container = styled.div`
   display: flex;
@@ -31,17 +33,33 @@ const Ht = styled.div`
 `;
 
 const Title = styled.div`
+  width: 100%;
   font-weight: 500;
   font-size: 20px;
+  display: flex;
+  justify-content: space-between;
+  box-sizing: border-box;
+  padding: 0 15px;
+`;
+
+const Change = styled(C)`
+  cursor: pointer;
 `;
 
 export default function NoTimer() {
+  const navigate = useNavigate();
+  const handleChange = () => {
+    navigate("/timer/left");
+  };
   return (
     <Container>
       <Header>
         <Ht>마이페이지</Ht>
       </Header>
-      <Title>금지 타이머</Title>
+      <Title>
+        금지 타이머
+        <Change onClick={handleChange} />
+      </Title>
       <div
         style={{
           display: "flex",

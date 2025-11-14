@@ -16,6 +16,17 @@ interface CalendarProps {
   selectRange?: boolean;
   activeStartDate?: Date;
   onActiveStartDateChange?: (date: Date) => void;
+  monthSchedules?: SchedulesByDate;
+}
+
+interface DrugScheduleBase {
+  id: string;
+  pillName: string;
+  time: string;
+}
+
+interface SchedulesByDate {
+  [date: string]: DrugScheduleBase[]; // 예: "2025-11-01": [...]
 }
 
 const CalendarStyles = createGlobalStyle`
@@ -160,7 +171,8 @@ const getTileClass = ({ date, view }: { date: Date; view: string }) => {
 // ⭐️ renderDot 함수를 제대로 정의하고 로직을 함수 내부에 포함시킵니다.
 function renderDot(
   { date, view }: { date: Date; view: string },
-  isForModal?: boolean
+  isForModal?: boolean,
+  schedulesByDate: SchedulesByDate = {}
 ) {
   if (view !== "month" || isForModal) return null;
 
@@ -184,11 +196,8 @@ function renderDot(
   const day = String(date.getDate()).padStart(2, "0");
   const dateString = `${year}-${month}-${day}`;
 
-  // ⭐️ 등록된 스케줄 중 현재 날짜와 일치하는 registrationDate가 있는지 확인합니다.
-  const shouldShowDot = schedules.some((schedule) => {
-    // registrationDate 속성이 존재하고 날짜 문자열이 일치하는지 확인
-    return schedule.registrationDate === dateString;
-  });
+  const schedulesForDate = schedulesByDate[dateString];
+  const shouldShowDot = schedulesForDate && schedulesForDate.length > 0;
 
   // ✅ 하나라도 조건을 만족하면 점 표시
   if (shouldShowDot) {
@@ -215,6 +224,7 @@ export default function CalendarView({
   isForModal,
   activeStartDate,
   onActiveStartDateChange,
+  monthSchedules = {},
 }: CalendarProps) {
   const [internalValue, setInternalValue] = useState<Value>(value ?? null);
   const [scheduleUpdateKey, setScheduleUpdateKey] = useState(0); // ⭐️ 스케줄 업데이트 키 추가
@@ -289,7 +299,9 @@ export default function CalendarView({
         calendarType="gregory"
         tileClassName={getTileClass}
         // ⭐️ renderDot 함수 호출 수정
-        tileContent={({ date, view }) => renderDot({ date, view }, isForModal)}
+        tileContent={({ date, view }) =>
+          renderDot({ date, view }, isForModal, monthSchedules)
+        }
         formatDay={(_, date) => date.getDate().toString()}
         showNeighboringMonth={true}
         view="month"

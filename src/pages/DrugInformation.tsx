@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import bb from "../assets/backbutton.svg";
 import { useNavigate } from "react-router-dom";
-import Nav from "../components/nav";
 import pill1 from "../assets/pill1.svg";
 import { useParams } from "react-router-dom";
 import axios from "axios";
@@ -141,7 +140,6 @@ export default function DrugInformation() {
           </BigBox>
         </DownContainer>
       </Container>
-      <Nav></Nav>
     </Screen>
   );
 }
@@ -153,6 +151,7 @@ const Screen = styled.div`
   padding-bottom: 64px;
   overflow-y: auto; // 스크롤 활성화
   padding-bottom: 150px;
+  padding-bottom: 1000px;
 `;
 
 const Header = styled.div`

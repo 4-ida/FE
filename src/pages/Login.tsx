@@ -6,6 +6,7 @@ import GoogleImg from "../assets/google.svg";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import bb from "../assets/backbutton.svg";
+import axiosInstance from "../axiosInstance";
 
 export default function Signup() {
   const handleGoBack = () => {
@@ -36,16 +37,50 @@ export default function Signup() {
         }
       );
 
+      // if (res.status === 200) {
+      //   console.log(" 로그인 성공:", res.data);
+      //   alert("로그인 성공");
+      //   localStorage.setItem("accessToken", res.data.accessToken);
+      //   if (localStorage.getItem("justSignedUp") === "true") {
+      //     localStorage.removeItem("justSignedUp"); // 한 번만 쓰고 지움
+      //     navigate("/mypage");
+      //   } else {
+      //     // 일반 로그인은 홈으로
+      //     navigate("/");
+      //   }
       if (res.status === 200) {
         console.log(" 로그인 성공:", res.data);
         alert("로그인 성공");
-        localStorage.setItem("accessToken", res.data.accessToken);
-        if (localStorage.getItem("justSignedUp") === "true") {
-          localStorage.removeItem("justSignedUp"); // 한 번만 쓰고 지움
+        const accessToken = res.data.accessToken;
+        localStorage.setItem("accessToken", accessToken);
+
+        // 🔥 1. 프로필 정보를 조회하여 설정 여부를 확인합니다.
+        try {
+          const profileRes = await axiosInstance.get(
+            `/api/v1/users/profile/me`
+          );
+          const profile = profileRes.data;
+
+          // caffeineSensitivity와 alcoholPattern이 null/undefined/빈 문자열인 경우 확인
+          const isProfileIncomplete =
+            !profile.caffeineSensitivity ||
+            !profile.alcoholPattern ||
+            profile.caffeineSensitivity === "" ||
+            profile.alcoholPattern === "";
+
+          // 🔥 2. 설정이 불완전하면 마이페이지로 이동하고, 모달 플래그를 설정합니다.
+          if (isProfileIncomplete) {
+            localStorage.setItem("showInitialProfileSetup", "true");
+            navigate("/mypage");
+          } else {
+            // 두 값 모두 설정되어 있다면 메인 페이지로 이동합니다.
+            navigate("/");
+          }
+        } catch (profileError: any) {
+          console.error("프로필 조회 실패:", profileError);
+          // 프로필 조회에 실패한 경우 (예: 서버 오류), 안전하게 마이페이지로 이동하도록 처리
+          localStorage.setItem("showInitialProfileSetup", "true");
           navigate("/mypage");
-        } else {
-          // 일반 로그인은 홈으로
-          navigate("/");
         }
       }
     } catch (err: any) {
