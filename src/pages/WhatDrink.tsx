@@ -258,7 +258,9 @@ export default function WhatDrink() {
     <Screen>
       <Header>
         {/* <Back src={bb} alt="뒤로 가기" onClick={handleGoBack} /> */}
-        <Logo />
+        <LogoWrapper onClick={() => navigate("/")}>
+          <Logo />
+        </LogoWrapper>
         <Ht onClick={handleGoToMyPage}>마이페이지</Ht>
       </Header>
       <ContentContainer>
@@ -320,7 +322,11 @@ const Header = styled.div`
   gap: 60px;
 `;
 
-
+const LogoWrapper = styled.div`
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+`;
 
 const Ht = styled.div`
   font-family: "Pretendard";

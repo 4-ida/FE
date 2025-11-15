@@ -7,10 +7,15 @@ import axiosInstance from "../axiosInstance";
 
 export default function Signup() {
   const handleGoBack = () => {
-    navigate(-1);
-  };
-  const handleGoToMyPage = () => {
-    navigate("/mypage");
+    // 로그인 상태 확인
+    const isLoggedIn = !!localStorage.getItem("accessToken");
+    if (isLoggedIn) {
+      // 로그인되어 있으면 메인 페이지로 이동
+      navigate("/");
+    } else {
+      // 로그인되어 있지 않으면 이전 페이지로 이동
+      navigate(-1);
+    }
   };
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -71,14 +76,14 @@ export default function Signup() {
           console.log("📥 카페인 민감도:", profile.caffeineSensitivity || "없음");
           console.log("📥 음주 패턴:", profile.alcoholPattern || "없음");
 
-          // 🔥 2. 설정이 불완전하면 마이페이지로 이동하고, 모달 플래그를 설정합니다.
+          // 🔥 2. 로그인 성공 후 마이페이지로 이동
           if (isProfileIncomplete) {
             console.log("📥 프로필이 불완전하여 마이페이지로 이동");
             localStorage.setItem("showInitialProfileSetup", "true");
             navigate("/mypage");
           } else {
-            console.log("📥 프로필이 완성되어 메인 페이지로 이동");
-            navigate("/main");
+            console.log("📥 프로필이 완성되어 마이페이지로 이동");
+            navigate("/mypage");
           }
         } catch (profileError: any) {
           console.error("❌ [일반 로그인] 프로필 조회 실패");
@@ -359,7 +364,6 @@ export default function Signup() {
     <Screen>
       <Header>
         <Back src={bb} alt="뒤로 가기" onClick={handleGoBack} />
-        <Ht onClick={handleGoToMyPage}>마이페이지</Ht>
       </Header>
       <ContentContainer>
         <Logincontent>
@@ -414,12 +418,6 @@ const Back = styled.img`
   cursor: pointer;
 `;
 
-const Ht = styled.div`
-  font-family: "Pretendard";
-  font-weight: 500;
-  font-size: 15px;
-  cursor: pointer;
-`;
 const ContentContainer = styled.div`
   display: flex;
   flex-direction: column;

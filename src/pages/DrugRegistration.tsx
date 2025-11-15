@@ -207,10 +207,19 @@ const Submit = styled.div`
   cursor: pointer;
 `;
 
-const LoGo = styled(Logo)`
+const LoGoWrapper = styled.div`
+  cursor: pointer;
+  display: flex;
+  align-items: center;
   position: absolute;
   top: 15px;
   left: 139px;
+`;
+
+const LoGo = styled(Logo)`
+  position: absolute;
+  top: 0;
+  left: 0;
 `;
 
 const AM_PM = ["오후", "오전"];
@@ -426,7 +435,9 @@ export default function DrugRegistration() {
 
   return (
     <Container>
-      <LoGo />
+      <LoGoWrapper onClick={() => navigate("/")}>
+        <LoGo />
+      </LoGoWrapper>
       <Header>
         <Back src={bb} alt="뒤로 가기" onClick={handleGoBack} />
         <Ht onClick={handleGoToMyPage}>마이페이지</Ht>

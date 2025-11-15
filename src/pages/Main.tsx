@@ -32,6 +32,12 @@ const Header = styled.div`
   gap: 60px;
 `;
 
+const LogoWrapper = styled.div`
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+`;
+
 const Ht = styled.div`
   font-family: "Pretendard";
   font-weight: 500;
@@ -540,13 +546,21 @@ export default function Main() {
     `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}`;
 
   const handleGoToMyPage = () => navigate("/mypage");
+  const handleGoToLogin = () => navigate("/login");
+
+  // 로그인 상태 확인
+  const isLoggedIn = !!localStorage.getItem("accessToken");
 
   return (
     <Container>
       <Nav />
       <Header>
-        <Logo />
-        <Ht onClick={handleGoToMyPage}>마이페이지</Ht>
+        <LogoWrapper onClick={() => navigate("/")}>
+          <Logo />
+        </LogoWrapper>
+        <Ht onClick={isLoggedIn ? handleGoToMyPage : handleGoToLogin}>
+          {isLoggedIn ? "마이페이지" : "로그인"}
+        </Ht>
       </Header>
       <HeaderContainer>
         <Title>내 달력</Title>
