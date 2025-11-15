@@ -4,6 +4,8 @@ import C from "../assets/LiaExchangeAltSolid.svg?react";
 import { useNavigate } from "react-router-dom";
 import Nav from "../components/nav";
 import Logo from "../assets/logo.svg?react";
+import { useState, useCallback, useEffect } from "react";
+import axiosInstance from "../axiosInstance";
 
 const Container = styled.div`
   display: flex;
