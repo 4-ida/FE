@@ -165,6 +165,7 @@ const DrinkAlcohol = lazy(() => import("./pages/DrinkAlcohol"));
 const Nav = lazy(() => import("./components/nav"));
 const DrugChange = lazy(() => import("./pages/drugchange"));
 const Setting = lazy(() => import("./setting"));
+const OAuth2Callback = lazy(() => import("./pages/OAuth2Callback"));
 
 function App() {
   return (
@@ -175,10 +176,12 @@ function App() {
             <GlobalStyles />
             <Suspense fallback={<div>Loading...</div>}>
               <Routes>
-                <Route path="/" element={<Setting />} />
+                <Route path="/" element={<Home />} />
                 <Route path="/main" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
+                <Route path="/oauth2/callback" element={<OAuth2Callback />} />
+                <Route path="/setting" element={<Setting />} />
                 <Route path="/drug/register" element={<DrugRegistration />} />
                 <Route
                   path="/drug/information/:drugId"

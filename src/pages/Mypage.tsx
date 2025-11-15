@@ -24,6 +24,41 @@ export default function Mypage() {
   const handleGoBack = () => {
     navigate(-1);
   };
+
+  // 로그아웃 처리
+  const handleLogout = () => {
+    console.log("🔓 [로그아웃] 처리 시작");
+    
+    // 확인 메시지 표시
+    const confirmed = window.confirm("로그아웃하시겠습니까?");
+    if (!confirmed) {
+      console.log("📥 로그아웃 취소됨");
+      return;
+    }
+
+    try {
+      // localStorage에서 모든 인증 정보 제거
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("user");
+      localStorage.removeItem("tokenExpiresAt");
+      localStorage.removeItem("showInitialProfileSetup");
+      
+      console.log("✅ [로그아웃] localStorage 정리 완료");
+      console.log("📥 제거된 항목: accessToken, user, tokenExpiresAt, showInitialProfileSetup");
+      
+      // 로그인 페이지로 리다이렉트
+      console.log("📥 로그인 페이지로 리다이렉트");
+      navigate("/login", { replace: true });
+    } catch (error: any) {
+      console.error("❌ [로그아웃] 처리 중 오류 발생");
+      console.error("📥 에러 메시지:", error.message);
+      console.error("📥 전체 에러 객체:", JSON.stringify(error, null, 2));
+      
+      // 에러가 발생해도 로그인 페이지로 이동
+      alert("로그아웃 처리 중 오류가 발생했습니다.");
+      navigate("/login", { replace: true });
+    }
+  };
   const sensitivityMap: Record<string, string> = {
     약함: "WEAK",
     보통: "NORMAL",
@@ -48,7 +83,9 @@ export default function Mypage() {
     try {
       const res = await axiosInstance.get(`/api/v1/users/profile/me`);
 
-      console.log("✅ 프로필 조회 성공:", res.data);
+      console.log("✅ [프로필 조회] 성공");
+      console.log("📥 응답 상태:", res.status);
+      console.log("📥 응답 데이터:", JSON.stringify(res.data, null, 2));
       setName(res.data.name);
       setEmail(res.data.email);
       // 필요한 경우 caffeineSensitivity, drinkingPattern 도 여기서 설정
@@ -189,7 +226,9 @@ export default function Mypage() {
         alcoholPattern: alcoholMap[drinkingPattern],
       });
 
-      console.log("✅ 프로필 수정 성공:", res.data);
+      console.log("✅ [프로필 수정] 성공");
+      console.log("📥 응답 상태:", res.status);
+      console.log("📥 응답 데이터:", JSON.stringify(res.data, null, 2));
 
       // 🔥 수정 성공 시 플래그 제거 및 메인 페이지로 이동
       localStorage.removeItem("showInitialProfileSetup");
@@ -207,9 +246,9 @@ export default function Mypage() {
       {showModal && <Modal isOpen={showModal} onClose={handleCloseModal} />}
       <Header>
         <Back src={bb} alt="뒤로 가기" onClick={handleGoBack} />
+        <LogoutButton onClick={handleLogout}>로그아웃</LogoutButton>
       </Header>
       <Profile>
-        <Picture></Picture>
         <Hello>“ {name}님, 안녕하세요! ”</Hello>
       </Profile>
       <Content>
@@ -310,10 +349,33 @@ const Back = styled.img`
   color: #333;
   cursor: pointer;
 `;
+const LogoutButton = styled.button`
+  font-family: "Pretendard";
+  font-style: normal;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 17px;
+  color: #767676;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 5px;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #f5f5f5;
+  }
+
+  &:active {
+    background-color: #ebebeb;
+  }
+`;
 const Profile = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
+  justify-content: center;
   padding: 0px;
 
   position: absolute;
@@ -322,33 +384,14 @@ const Profile = styled.div`
   left: 15px;
   top: 80px;
 `;
-const Picture = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 10px;
-  width: 78px;
-  height: 78px;
-  background: #d9d9d9;
-  border-radius: 55px;
-  flex: none;
-  order: 0;
-  flex-grow: 0;
-`;
 const Hello = styled.div`
-  position: absolute;
-  width: 200px;
-  height: 24px;
-  left: calc(50% - 200px / 2 + 0.5px);
-  top: calc(50% - 24px / 2);
-  margin-left: 43px;
   font-family: "Pretendard";
   font-style: normal;
   font-weight: 500;
   font-size: 20px;
   line-height: 24px;
   color: #333333;
+  text-align: center;
 `;
 const Content = styled.div`
   display: flex;

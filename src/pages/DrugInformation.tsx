@@ -4,7 +4,6 @@ import bb from "../assets/backbutton.svg";
 import { useNavigate } from "react-router-dom";
 import Nav from "../components/nav";
 import { useParams } from "react-router-dom";
-import axios from "axios";
 import Logo from "../assets/logo.svg?react";
 import axiosInstance from "../axiosInstance";
 
@@ -46,7 +45,9 @@ export default function DrugInformation() {
           `/api/v1/drug/details/${drugId}`
         );
         if (res.status === 200) {
-          console.log("약품상세조회 성공", res.data);
+          console.log("✅ [약품 상세 조회] 성공");
+          console.log("📥 응답 상태:", res.status);
+          console.log("📥 응답 데이터:", JSON.stringify(res.data, null, 2));
           setDrug(res.data);
         }
       } catch (err: any) {
@@ -342,28 +343,6 @@ const Title2 = styled.div`
   order: 0;
   align-self: stretch;
   flex-grow: 0;
-`;
-
-const LaterBox = styled.ul`
-  display: block; /* flex item으로 취급하지 않게 */
-  align-self: flex-start; /* 부모 높이에 맞춰 늘어나지 않게 */
-  align-items: initial; /* 내부 컨텐츠 높이 기준으로 계산 */
-  height: auto; /* fit-content 대신 auto로 자동 높이 계산 */
-  width: auto; /* 343px 고정 폭 제거 (필요 시 max-width만 유지) */
-  max-width: 100%;
-  background: #ffffff;
-  border: 1.5px solid #ebebeb;
-  border-radius: 5px;
-  padding: 10px;
-  font-family: "Pretendard";
-  font-style: normal;
-  font-weight: 400;
-  font-size: 16px;
-  line-height: 19px;
-  list-style-type: disc;
-  list-style-position: inside;
-  color: #333333;
-  margin: 0px;
 `;
 
 const SmallBox = styled.div`

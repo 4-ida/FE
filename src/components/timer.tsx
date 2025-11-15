@@ -31,7 +31,9 @@ const RingTimer = ({ totalSeconds = 300, onComplete }: RingTimerProps) => {
   //   return () => clearInterval(timer);
   // }, [remaining]);
   useEffect(() => {
-    setRemaining(totalSeconds);
+    // totalSeconds가 유효하지 않으면 0으로 설정
+    const validTotalSeconds = totalSeconds && !isNaN(totalSeconds) && totalSeconds >= 0 ? totalSeconds : 0;
+    setRemaining(validTotalSeconds);
   }, [totalSeconds]);
 
   /** 1초마다 줄어드는 타이머 */
@@ -65,10 +67,19 @@ const RingTimer = ({ totalSeconds = 300, onComplete }: RingTimerProps) => {
   //   }, 1000);
   // }
 
-  const progressRatio = remaining / totalSeconds;
+  // totalSeconds와 remaining이 유효한지 확인
+  const validTotalSeconds = (totalSeconds != null && !isNaN(totalSeconds) && isFinite(totalSeconds) && totalSeconds >= 0) ? totalSeconds : 0;
+  const validRemaining = (remaining != null && !isNaN(remaining) && isFinite(remaining) && remaining >= 0) ? remaining : 0;
+  
+  // progressRatio 계산: totalSeconds가 0이면 progressRatio는 0 (타이머 없음)
+  const progressRatio = validTotalSeconds > 0 ? Math.max(0, Math.min(1, validRemaining / validTotalSeconds)) : 0;
 
   // const strokeDashoffset = circumference * progressRatio;
-  const strokeDashoffset = circumference * (1 - progressRatio);
+  // progressRatio가 NaN이거나 유효하지 않으면 0으로 처리
+  const validProgressRatio = isNaN(progressRatio) || !isFinite(progressRatio) ? 0 : Math.max(0, Math.min(1, progressRatio));
+  const strokeDashoffsetValue = circumference * (1 - validProgressRatio);
+  // strokeDashoffset가 NaN이면 0으로 처리
+  const strokeDashoffset = isNaN(strokeDashoffsetValue) || !isFinite(strokeDashoffsetValue) ? 0 : strokeDashoffsetValue;
 
   const formatTime = (seconds: number) => {
     const h = String(Math.floor(seconds / 3600)).padStart(2, "0");
@@ -162,11 +173,11 @@ const RingTimer = ({ totalSeconds = 300, onComplete }: RingTimerProps) => {
         }}
       >
         <div style={{ fontSize: "48px", fontWeight: "500" }}>
-          {formatTime(remaining)}
+          {formatTime(validRemaining)}
         </div>
         <div style={{ fontSize: "24px", color: "#888" }}>
           {/* totalSeconds를 표시 */}
-          {getDisplayUnit(totalSeconds)}
+          {validTotalSeconds > 0 ? getDisplayUnit(validTotalSeconds) : "00초"}
         </div>
       </div>
     </div>

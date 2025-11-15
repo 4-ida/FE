@@ -100,7 +100,9 @@ export default function Signup() {
       );
 
       if (res.status === 201) {
-        console.log(" 회원가입 성공:", res.data);
+        console.log("✅ [회원가입] 성공");
+        console.log("📥 응답 상태:", res.status);
+        console.log("📥 응답 데이터:", JSON.stringify(res.data, null, 2));
 
         alert("회원가입이 완료되었습니다!");
         localStorage.setItem("justSignedUp", "true");

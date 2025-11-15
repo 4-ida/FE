@@ -289,7 +289,9 @@ export default function DrugRegistration() {
       const response = await axiosInstance.get("/api/v1/drug/suggest", {
         params: { q: query, limit: 10 },
       });
-      console.log(response.data);
+      console.log("✅ [약물 자동완성] 성공");
+      console.log("📥 응답 상태:", response.status);
+      console.log("📥 응답 데이터:", JSON.stringify(response.data, null, 2));
 
       // API 응답: { data: [{ id, name }, ...] }
       const drugList = response.data?.suggestions || [];
@@ -406,7 +408,9 @@ export default function DrugRegistration() {
         requestBody
       );
 
-      console.log("✅ 약물 등록 성공:", response.data);
+      console.log("✅ [약물 등록] 성공");
+      console.log("📥 응답 상태:", response.status);
+      console.log("📥 응답 데이터:", JSON.stringify(response.data, null, 2));
       alert(`${pillName} 복용 일정이 등록되었습니다.`);
       navigate("/main", {
         state: {

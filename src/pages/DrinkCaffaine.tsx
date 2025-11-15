@@ -74,10 +74,15 @@ export default function DrinkCaffaine() {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      console.log("res:", res);
+      console.log("✅ [카페인 섭취 등록] 성공");
+      console.log("📥 응답 상태:", res.status);
+      console.log("📥 응답 데이터:", JSON.stringify(res.data, null, 2));
       if (res.status === 201) {
-        console.log("카페인 섭취 등록 성공");
-        console.log(res.data);
+        console.log("📥 intakeId:", res.data?.intakeId);
+        console.log("📥 userId:", res.data?.userId);
+        console.log("📥 beverageName:", res.data?.beverageName);
+        console.log("📥 amount:", res.data?.amount);
+        console.log("📥 intakeType:", res.data?.intakeType);
       }
     } catch (err) {
       console.error("카페인 섭취등록 실패", err);

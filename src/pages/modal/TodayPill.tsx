@@ -191,7 +191,9 @@ export default function TodayPill({
         `/api/v1/main/calendar/schedules/${scheduleId}`
       );
 
-      console.log("삭제 성공:", response.data);
+      console.log("✅ [복약일정 삭제] 성공");
+      console.log("📥 응답 상태:", response.status);
+      console.log("📥 응답 데이터:", JSON.stringify(response.data, null, 2));
       alert("복약 일정이 삭제되었습니다.");
 
       // 부모 컴포넌트에서 상태를 갱신하도록 호출
