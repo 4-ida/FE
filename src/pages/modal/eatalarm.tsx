@@ -87,7 +87,7 @@ export default function PillReminderModal({
   isOpen,
   onClose,
   pillName,
-  time,
+  
 }: ReminderModalProps) {
   if (!isOpen) return null;
 
