@@ -263,37 +263,139 @@ export default function Main() {
     newCompletionStatus: "TAKEN" | "MISSED" | "NONE"
   ) => {
     const scheduleId = Number(id);
-    if (isNaN(scheduleId)) return;
-
-    const scheduleToUpdate = drugSchedules.find(
-      (s) => s.scheduleId === scheduleId
-    );
-
-    if (!scheduleToUpdate) {
-      console.error("업데이트할 일정을 찾을 수 없습니다.");
+    if (isNaN(scheduleId)) {
+      console.error("❌ [복용 완료 상태 변경] 유효하지 않은 scheduleId:", id);
+      alert("일정 ID가 유효하지 않습니다.");
       return;
     }
 
-    try {
-      await axiosInstance.put(`/api/v1/main/calendar/schedules/${scheduleId}`, {
-        drugId: scheduleToUpdate.drugId,
-        name: scheduleToUpdate.name,
-        dose: scheduleToUpdate.dose,
-        date: scheduleToUpdate.date,
-        time: scheduleToUpdate.time,
-        memo: scheduleToUpdate.memo,
-        plan: scheduleToUpdate.plan,
-        status: newCompletionStatus, // ⭐️ 변경된 값 (TAKEN, MISSED, NONE)
-        alarm: scheduleToUpdate.alarm,
-      });
+    console.log("🔄 [복용 완료 상태 변경] 시작");
+    console.log("📤 전달받은 id:", id);
+    console.log("📤 변환된 scheduleId:", scheduleId);
+    console.log("📤 newCompletionStatus:", newCompletionStatus);
 
-      // 상태 변경 후 목록 재조회 (UI 갱신)
-      if (selectedDate) {
-        fetchTodayPills(selectedDate);
+    try {
+      // 1. 먼저 현재 일정 정보를 단일 조회 API로 조회 (항상 최신 정보 사용)
+      console.log("📖 [복용 완료 상태 변경] 일정 단일 조회 API 호출 시작");
+      console.log("📤 요청 URL: GET /api/v1/main/calendar/schedules/${scheduleId}");
+      console.log("📤 scheduleId:", scheduleId);
+      
+      const detailRes = await axiosInstance.get(`/api/v1/main/calendar/schedules/${scheduleId}`);
+      
+      console.log("✅ [복용 완료 상태 변경] 일정 단일 조회 API 호출 성공");
+      console.log("📥 응답 상태:", detailRes.status);
+      console.log("📥 응답 데이터:", JSON.stringify(detailRes.data, null, 2));
+      
+      // 응답 데이터 구조 확인 (drugchange.tsx와 동일하게 처리: res.data.data)
+      const scheduleDetail = detailRes.data?.data || detailRes.data;
+      
+      if (!scheduleDetail) {
+        console.error("❌ [복용 완료 상태 변경] 일정 정보 조회 실패 - 응답 데이터가 없습니다.");
+        console.error("📥 detailRes.data:", detailRes.data);
+        throw new Error("일정 정보를 조회할 수 없습니다.");
       }
-    } catch (error) {
-      console.error("❌ CompletionStatus 변경 실패:", error);
-      alert("복용 완료/미섭취 상태 변경에 실패했습니다.");
+      
+      console.log("📥 scheduleDetail:", JSON.stringify(scheduleDetail, null, 2));
+      console.log("📥 scheduleDetail.drugId:", scheduleDetail.drugId);
+      console.log("📥 scheduleDetail.name:", scheduleDetail.name);
+      console.log("📥 scheduleDetail.dose:", scheduleDetail.dose);
+      console.log("📥 scheduleDetail.date:", scheduleDetail.date);
+      console.log("📥 scheduleDetail.time:", scheduleDetail.time);
+      console.log("📥 scheduleDetail.memo:", scheduleDetail.memo);
+      console.log("📥 scheduleDetail.plan:", scheduleDetail.plan);
+      console.log("📥 scheduleDetail.status:", scheduleDetail.status);
+      console.log("📥 scheduleDetail.alarm:", scheduleDetail.alarm);
+      
+      // 2. 조회한 정보로 상태 업데이트
+      console.log("📤 [복용 완료 상태 변경] 상태 업데이트 API 호출 시작");
+      console.log("📤 요청 URL: PUT /api/v1/main/calendar/schedules/${scheduleId}");
+      
+      const updateRequestBody = {
+        drugId: scheduleDetail.drugId,
+        name: scheduleDetail.name,
+        dose: scheduleDetail.dose || "1정",
+        date: scheduleDetail.date,
+        time: scheduleDetail.time,
+        memo: scheduleDetail.memo || "",
+        plan: scheduleDetail.plan,
+        status: newCompletionStatus, // ⭐️ 변경된 값 (TAKEN, MISSED, NONE)
+        alarm: scheduleDetail.alarm || { enabled: false },
+      };
+      
+      console.log("📤 요청 본문:", JSON.stringify(updateRequestBody, null, 2));
+      
+      await axiosInstance.put(`/api/v1/main/calendar/schedules/${scheduleId}`, updateRequestBody);
+
+      console.log("✅ [복용 완료 상태 변경] 성공");
+
+      // 3. 복용 완료(TAKEN) 상태로 변경된 경우 금지 타이머 페이지로 이동
+      if (newCompletionStatus === "TAKEN") {
+        console.log("📤 [복용 완료] 금지 타이머 페이지로 이동");
+        console.log("📤 전달할 scheduleId:", scheduleId);
+        console.log("📤 scheduleId 타입:", typeof scheduleId);
+        console.log("📤 scheduleId 값:", scheduleId);
+        console.log("📤 scheduleId를 Number로 변환:", Number(scheduleId));
+        console.log("📤 scheduleId가 NaN인가?", isNaN(Number(scheduleId)));
+        console.log("📤 이동할 URL:", `/timer/no?scheduleId=${scheduleId}`);
+        console.log("📤 location.state로 전달할 객체:", { scheduleId: scheduleId });
+        console.log("📤 URL 파라미터로 전달:", `scheduleId=${scheduleId}`);
+        
+        // scheduleId 유효성 검사
+        if (!scheduleId || isNaN(Number(scheduleId))) {
+          console.error("❌ [복용 완료] scheduleId가 유효하지 않습니다:", scheduleId);
+          alert(`일정 ID가 유효하지 않습니다. (scheduleId: ${scheduleId})`);
+          return;
+        }
+        
+        // 상태 변경 후 목록 재조회는 백그라운드에서 실행 (navigate 후에도 실행 가능)
+        if (selectedDate) {
+          fetchTodayPills(selectedDate).catch((err) => {
+            console.error("❌ 목록 재조회 실패 (백그라운드):", err);
+          });
+        }
+
+        // 금지 타이머 페이지로 이동하면서 scheduleId 전달 (URL 파라미터와 state 둘 다 사용)
+        // URL 파라미터를 사용하면 페이지 새로고침 시에도 유지됨
+        const navigationUrl = `/timer/no?scheduleId=${scheduleId}`;
+        const navigationState = { scheduleId: scheduleId };
+        
+        console.log("📤 최종 이동 URL:", navigationUrl);
+        console.log("📤 최종 이동 state:", navigationState);
+        console.log("📤 이동 직전 확인 - scheduleId:", scheduleId, "타입:", typeof scheduleId);
+        
+        // navigate를 바로 호출 (setTimeout 제거하여 즉시 이동)
+        navigate(navigationUrl, {
+          state: navigationState,
+          replace: false,
+        });
+        
+        console.log("✅ [복용 완료] navigate 호출 완료");
+      } else {
+        // TAKEN이 아닌 경우에만 목록 재조회
+        if (selectedDate) {
+          fetchTodayPills(selectedDate);
+        }
+      }
+    } catch (error: any) {
+      console.error("❌ [복용 완료 상태 변경] API 조회/업데이트 실패:", error);
+      if (error.response) {
+        console.error("📥 에러 상태 코드:", error.response.status);
+        console.error("📥 에러 응답 데이터:", JSON.stringify(error.response.data, null, 2));
+      } else if (error.request) {
+        console.error("📥 요청은 전송되었지만 응답을 받지 못했습니다:", error.request);
+      } else {
+        console.error("📥 에러 메시지:", error.message);
+      }
+      
+      // 에러가 발생해도 scheduleId는 유효하므로 금지 타이머 페이지로 이동 시도
+      if (newCompletionStatus === "TAKEN") {
+        console.warn("⚠️ API 호출 실패했지만, scheduleId로 금지 타이머 페이지로 이동합니다.");
+        navigate(`/timer/no?scheduleId=${scheduleId}`, {
+          replace: false,
+        });
+      } else {
+        alert("복용 완료/미섭취 상태 변경에 실패했습니다.");
+      }
     }
   };
 

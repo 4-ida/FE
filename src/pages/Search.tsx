@@ -63,7 +63,7 @@ export default function Search() {
 
       console.log("✅ [북마크 목록 조회] 성공");
       console.log("📥 응답 상태:", res.status);
-      console.log("📥 응답 데이터:", res.data);
+      console.log("📥 응답 데이터:", JSON.stringify(res.data, null, 2));
       console.log("📥 응답 데이터 타입:", typeof res.data);
       console.log("📥 items 존재 여부:", !!res.data?.items);
       console.log("📥 items 타입:", Array.isArray(res.data?.items) ? "배열" : typeof res.data?.items);
@@ -180,7 +180,7 @@ export default function Search() {
 
         console.log("✅ [약물 검색] 성공");
         console.log("📥 응답 상태:", res.status);
-        console.log("📥 응답 데이터:", res.data);
+        console.log("📥 응답 데이터:", JSON.stringify(res.data, null, 2));
         console.log("📥 응답 데이터 타입:", typeof res.data);
         console.log("📥 items 존재 여부:", !!res.data?.items);
         console.log("📥 items 타입:", Array.isArray(res.data?.items) ? "배열" : typeof res.data?.items);
@@ -275,7 +275,7 @@ export default function Search() {
 
       console.log("✅ [북마크 추가] 성공");
       console.log("📥 응답 상태:", res.status);
-      console.log("📥 응답 데이터:", res.data);
+      console.log("📥 응답 데이터:", JSON.stringify(res.data, null, 2));
 
       if (res.status === 200) {
         // 검색 결과 업데이트
@@ -350,7 +350,7 @@ export default function Search() {
 
       console.log("✅ [북마크 제거] 성공");
       console.log("📥 응답 상태:", res.status);
-      console.log("📥 응답 데이터:", res.data);
+      console.log("📥 응답 데이터:", JSON.stringify(res.data, null, 2));
 
       if (res.status === 200) {
         // 검색 결과 업데이트

@@ -508,24 +508,55 @@ export default function DrugModification() {
       //     },
       //   });
       // }
-      console.log("✅ 수정 성공 Response:", response.data);
+      console.log("✅ [복약일정 수정] 성공");
+      console.log("📥 응답 상태:", response.status);
+      console.log("📥 응답 데이터:", JSON.stringify(response.data, null, 2));
+      console.log("📤 [복약일정 수정] 성공 - apiStatus:", apiStatus);
+      console.log("📤 [복약일정 수정] scheduleId:", idToUse);
+      console.log("📤 [복약일정 수정] scheduleId 타입:", typeof idToUse);
 
+      // status가 "TAKEN"일 경우 금지 타이머 페이지로 직접 이동
       if (apiStatus === "TAKEN") {
-        alert(
-          "⏰ 타이머 설정이 완료되었습니다. 메인 페이지에서 타이머를 확인해주세요."
-        );
+        console.log("📤 [복약일정 수정] 복용 완료 상태 - 금지 타이머 페이지로 이동");
+        console.log("📤 전달할 scheduleId:", idToUse);
+        console.log("📤 이동할 URL:", `/timer/no?scheduleId=${idToUse}`);
+        console.log("📤 location.state로 전달할 객체:", { scheduleId: idToUse });
+        
+        // scheduleId 유효성 검사
+        if (!idToUse || isNaN(idToUse)) {
+          console.error("❌ [복약일정 수정] scheduleId가 유효하지 않습니다:", idToUse);
+          alert(`일정 ID가 유효하지 않습니다. (scheduleId: ${idToUse})`);
+          return;
+        }
+        
+        // 금지 타이머 페이지로 이동하면서 scheduleId 전달 (URL 파라미터와 state 둘 다 사용)
+        const navigationUrl = `/timer/no?scheduleId=${idToUse}`;
+        const navigationState = { scheduleId: idToUse };
+        
+        console.log("📤 최종 이동 URL:", navigationUrl);
+        console.log("📤 최종 이동 state:", navigationState);
+        console.log("📤 이동 직전 확인 - scheduleId:", idToUse, "타입:", typeof idToUse);
+        
+        alert("⏰ 복용 완료 상태로 변경되었습니다. 금지 타이머가 시작됩니다.");
+        
+        // 금지 타이머 페이지로 직접 이동
+        navigate(navigationUrl, {
+          state: navigationState,
+          replace: false,
+        });
+        
+        console.log("✅ [복약일정 수정] 금지 타이머 페이지로 이동 완료");
       } else {
+        // TAKEN이 아닌 경우 메인 페이지로 이동
         alert(`${pillName} 복용 일정이 수정되었습니다.`);
+        navigate("/main", {
+          replace: true,
+          state: {
+            selectedDate: currentDate,
+            scheduleUpdated: true, // 메인 페이지 갱신 유도
+          },
+        });
       }
-
-      // 상태와 관계없이 메인 페이지로 이동 (status가 TAKEN일 때는 알림 후 이동)
-      navigate("/main", {
-        replace: true,
-        state: {
-          selectedDate: currentDate,
-          scheduleUpdated: true, // 메인 페이지 갱신 유도
-        },
-      });
     } catch (error) {
       console.error("❌ 약물 수정 실패:", error);
       if (axios.isAxiosError(error) && error.response) {

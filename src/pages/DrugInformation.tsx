@@ -44,7 +44,9 @@ export default function DrugInformation() {
           `/api/v1/drug/details/${drugId}`
         );
         if (res.status === 200) {
-          console.log("약품상세조회 성공", res.data);
+          console.log("✅ [약품 상세 조회] 성공");
+          console.log("📥 응답 상태:", res.status);
+          console.log("📥 응답 데이터:", JSON.stringify(res.data, null, 2));
           setDrug(res.data);
         }
       } catch (err: any) {

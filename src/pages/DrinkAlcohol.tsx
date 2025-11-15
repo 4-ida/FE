@@ -173,9 +173,14 @@ export default function DrinkAlcohol() {
 
       console.log("✅ [알코올 섭취 등록] 성공");
       console.log("📥 응답 상태:", res.status);
-      console.log("📥 응답 데이터:", res.data);
-
+      console.log("📥 응답 데이터:", JSON.stringify(res.data, null, 2));
       if (res.status === 201) {
+        console.log("📥 intakeId:", res.data?.intakeId);
+        console.log("📥 userId:", res.data?.userId);
+        console.log("📥 alcoholType:", res.data?.alcoholType);
+        console.log("📥 amount:", res.data?.amount);
+        console.log("📥 intakeType:", res.data?.intakeType);
+        
         alert("알코올 섭취가 등록되었습니다.");
         GotoWhatDrink();
       }

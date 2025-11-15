@@ -31,11 +31,28 @@ export default function WhatDrink() {
     amount: number;
     intakeType: string;
     abv?: number;
+    remainingSec?: number;
+    isSafe?: boolean;
+    expectedSafeTime?: string;
   }
 
   interface IntakeData {
     caffeineTimer: TimerItem | null;
     alcoholTimer: TimerItem | null;
+  }
+
+  // 금지 타이머 응답 인터페이스 (API 문서 기반)
+  interface ResidualTimerResponse {
+    intakeType: "CAFFEINE" | "ALCOHOL";
+    currentAmount: number;
+    threshold: number;
+    halfLifeOrRate: number;
+    hoursPassed: number;
+    adjustmentFactor: number;
+    expectedSafeTime: string;
+    remainingSec: number;
+    isSafe: boolean;
+    assumptions?: Record<string, any>;
   }
 
   // 활성 타이머 리스트 조회 연동
@@ -84,8 +101,11 @@ export default function WhatDrink() {
         if (res.status === 200) {
           console.log("✅ [카페인 잔존 타이머 조회] 성공");
           console.log("📥 응답 데이터:", JSON.stringify(res.data, null, 2));
-          const remainingSeconds = res.data.remainingSeconds || res.data.remaining || res.data;
+          const timerData: ResidualTimerResponse = res.data;
+          const remainingSeconds = timerData.remainingSec || res.data.remaining || res.data;
           console.log("📥 추출된 카페인 잔존 시간:", remainingSeconds, "초");
+          console.log("📥 복약 가능 여부:", timerData.isSafe ? "가능" : "불가능");
+          console.log("📥 복약 가능 예상 시각:", timerData.expectedSafeTime);
           setCaffeineRemaining(remainingSeconds);
         }
       } catch (err: any) {
@@ -105,7 +125,8 @@ export default function WhatDrink() {
               );
               if (altRes.status === 200) {
                 console.log("✅ [카페인 잔존 타이머 조회] 대체 엔드포인트 성공");
-                const remainingSeconds = altRes.data.remainingSeconds || altRes.data.remaining || altRes.data;
+                const timerData: ResidualTimerResponse = altRes.data;
+                const remainingSeconds = timerData.remainingSec || altRes.data.remaining || altRes.data;
                 setCaffeineRemaining(remainingSeconds);
                 return;
               }
@@ -185,8 +206,12 @@ export default function WhatDrink() {
         if (res.status === 200) {
           console.log("✅ [알코올 잔존 타이머 조회] 성공");
           console.log("📥 응답 데이터:", JSON.stringify(res.data, null, 2));
-          const remainingSeconds = res.data.remainingSeconds || res.data.remaining || res.data;
+          const timerData: ResidualTimerResponse = res.data;
+          const remainingSeconds = timerData.remainingSec || res.data.remaining || res.data;
           console.log("📥 추출된 알코올 잔존 시간:", remainingSeconds, "초");
+          console.log("📥 복약 가능 여부:", timerData.isSafe ? "가능" : "불가능");
+          console.log("📥 복약 가능 예상 시각:", timerData.expectedSafeTime);
+          console.log("📥 현재 잔존량:", timerData.currentAmount, timerData.intakeType === "CAFFEINE" ? "mg" : "%BAC");
           setAlcoholRemaining(remainingSeconds);
         }
       } catch (err: any) {
@@ -206,7 +231,8 @@ export default function WhatDrink() {
               );
               if (altRes.status === 200) {
                 console.log("✅ [알코올 잔존 타이머 조회] 대체 엔드포인트 성공");
-                const remainingSeconds = altRes.data.remainingSeconds || altRes.data.remaining || altRes.data;
+                const timerData: ResidualTimerResponse = altRes.data;
+                const remainingSeconds = timerData.remainingSec || altRes.data.remaining || altRes.data;
                 setAlcoholRemaining(remainingSeconds);
                 return;
               }
