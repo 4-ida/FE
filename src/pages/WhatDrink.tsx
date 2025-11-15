@@ -1,15 +1,15 @@
 import styled from "styled-components";
 import { useState, useEffect } from "react";
 import Nav from "../components/nav";
-import bb from "../assets/backbutton.svg";
+
 import { useNavigate } from "react-router-dom";
+
+import Logo from "../assets/logo.svg?react";
 import axiosInstance from "../axiosInstance";
 
 export default function WhatDrink() {
   const navigate = useNavigate();
-  const handleGoBack = () => {
-    navigate(-1);
-  };
+
   const handleGoToMyPage = () => {
     navigate("/mypage");
   };
@@ -257,7 +257,8 @@ export default function WhatDrink() {
   return (
     <Screen>
       <Header>
-        <Back src={bb} alt="뒤로 가기" onClick={handleGoBack} />
+        {/* <Back src={bb} alt="뒤로 가기" onClick={handleGoBack} /> */}
+        <Logo />
         <Ht onClick={handleGoToMyPage}>마이페이지</Ht>
       </Header>
       <ContentContainer>
@@ -315,12 +316,11 @@ const Header = styled.div`
   align-items: center;
   padding: 0 15px;
   box-sizing: border-box;
-  justify-content: space-between;
+  justify-content: flex-end;
+  gap: 60px;
 `;
-const Back = styled.img`
-  color: #333;
-  cursor: pointer;
-`;
+
+
 
 const Ht = styled.div`
   font-family: "Pretendard";
@@ -328,6 +328,7 @@ const Ht = styled.div`
   font-size: 15px;
   cursor: pointer;
 `;
+
 const ContentContainer = styled.div`
   display: flex;
   flex-direction: column;

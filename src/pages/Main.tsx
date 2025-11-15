@@ -7,6 +7,7 @@ import CalendarView from "../components/Calendar";
 import Plus from "../assets/AiOutlinePlus.svg?react";
 import { useState, useEffect } from "react";
 import axiosInstance from "../axiosInstance";
+import Logo from "../assets/logo.svg?react";
 
 const Container = styled.div`
   display: flex;
@@ -28,6 +29,7 @@ const Header = styled.div`
   padding: 0 15px;
   box-sizing: border-box;
   justify-content: flex-end;
+  gap: 60px;
 `;
 
 const Ht = styled.div`
@@ -539,12 +541,11 @@ export default function Main() {
 
   const handleGoToMyPage = () => navigate("/mypage");
 
-  const sampleProgress = 20;
-
   return (
     <Container>
       <Nav />
       <Header>
+        <Logo />
         <Ht onClick={handleGoToMyPage}>마이페이지</Ht>
       </Header>
       <HeaderContainer>

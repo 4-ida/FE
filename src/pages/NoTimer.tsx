@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import Nav from "../components/nav";
 import axiosInstance from "../axiosInstance";
 import { useEffect, useState, useCallback } from "react";
+import Logo from "../assets/logo.svg?react";
 
 // 금지 타이머 응답 인터페이스 (약 먹는 동안 카페인/알코올 금지 시간)
 interface ForbiddenTimerResponse {
@@ -34,6 +35,7 @@ const Header = styled.div`
   padding: 0 15px;
   box-sizing: border-box;
   justify-content: flex-end;
+  gap: 60px;
 `;
 
 const Ht = styled.div`
@@ -304,6 +306,7 @@ export default function NoTimer() {
     <Container>
       <Nav />
       <Header>
+        <Logo />
         <Ht onClick={() => navigate("/mypage")}>마이페이지</Ht>
       </Header>
       {loading ? (

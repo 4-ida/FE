@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import type { DrugSchedule } from "./Main";
 import axiosInstance from "../axiosInstance";
 import axios from "axios";
+import Logo from "../assets/logo.svg?react";
 
 // --- [스타일 컴포넌트 정의 시작] ---
 
@@ -215,6 +216,12 @@ const Button = styled.div<{ $status: string }>`
   box-sizing: border-box;
   background-color: ${(props) =>
     props.$status === "SCHEDULED" ? "#C3EBFF" : "#FFCCC3"};
+`;
+
+const LoGo = styled(Logo)`
+  position: absolute;
+  top: 15px;
+  left: 139px;
 `;
 
 const StatusDropdownWrapper = styled.div`
@@ -573,6 +580,7 @@ export default function DrugModification() {
 
   return (
     <Container>
+      <LoGo />
       <Header>
         <Back src={bb} alt="뒤로 가기" onClick={handleGoBack} />
         <Ht onClick={handleGoToMyPage}>마이페이지</Ht>
