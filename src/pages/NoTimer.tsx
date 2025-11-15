@@ -38,6 +38,12 @@ const Header = styled.div`
   gap: 60px;
 `;
 
+const LogoWrapper = styled.div`
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+`;
+
 const Ht = styled.div`
   font-family: "Pretendard";
   font-weight: 500;
@@ -306,7 +312,9 @@ export default function NoTimer() {
     <Container>
       <Nav />
       <Header>
-        <Logo />
+        <LogoWrapper onClick={() => navigate("/")}>
+          <Logo />
+        </LogoWrapper>
         <Ht onClick={() => navigate("/mypage")}>마이페이지</Ht>
       </Header>
       {loading ? (

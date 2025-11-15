@@ -218,10 +218,19 @@ const Button = styled.div<{ $status: string }>`
     props.$status === "SCHEDULED" ? "#C3EBFF" : "#FFCCC3"};
 `;
 
-const LoGo = styled(Logo)`
+const LoGoWrapper = styled.div`
+  cursor: pointer;
+  display: flex;
+  align-items: center;
   position: absolute;
   top: 15px;
   left: 139px;
+`;
+
+const LoGo = styled(Logo)`
+  position: absolute;
+  top: 0;
+  left: 0;
 `;
 
 const StatusDropdownWrapper = styled.div`
@@ -580,7 +589,9 @@ export default function DrugModification() {
 
   return (
     <Container>
-      <LoGo />
+      <LoGoWrapper onClick={() => navigate("/")}>
+        <LoGo />
+      </LoGoWrapper>
       <Header>
         <Back src={bb} alt="뒤로 가기" onClick={handleGoBack} />
         <Ht onClick={handleGoToMyPage}>마이페이지</Ht>

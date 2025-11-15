@@ -22,7 +22,15 @@ export default function Mypage() {
 
   const navigate = useNavigate();
   const handleGoBack = () => {
-    navigate(-1);
+    // 로그인 상태 확인
+    const isLoggedIn = !!localStorage.getItem("accessToken");
+    if (isLoggedIn) {
+      // 로그인되어 있으면 메인 페이지로 이동
+      navigate("/");
+    } else {
+      // 로그인되어 있지 않으면 이전 페이지로 이동
+      navigate(-1);
+    }
   };
 
   // 로그아웃 처리
@@ -242,7 +250,9 @@ export default function Mypage() {
 
   return (
     <Screen>
-      <LoGo />
+      <LoGoWrapper onClick={() => navigate("/")}>
+        <LoGo />
+      </LoGoWrapper>
       {showModal && <Modal isOpen={showModal} onClose={handleCloseModal} />}
       <Header>
         <Back src={bb} alt="뒤로 가기" onClick={handleGoBack} />
@@ -417,6 +427,12 @@ const NameBox = styled.div`
   order: 0;
   align-self: stretch;
   flex-grow: 0;
+`;
+
+const LoGoWrapper = styled.div`
+  cursor: pointer;
+  display: flex;
+  align-items: center;
 `;
 
 const LoGo = styled(Logo)`
